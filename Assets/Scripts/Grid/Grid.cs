@@ -14,9 +14,11 @@ namespace Shanghai.Grid {
             get { return _Cells; }
         }
 
-        private SourceRow _SourceRow;
-
         public Grid(int size) {
+            BuildGrid(size);
+        }
+
+        private void BuildGrid(int size) {
             for (int y = 0; y < size; y++) {
                 List<PlayableCell> row = new List<PlayableCell>();
                 for (int x = 0; x < size; x++) {
@@ -24,13 +26,16 @@ namespace Shanghai.Grid {
                 }
                 _Cells.Add(row);
             }
-
-            _SourceRow = new SourceRow(size);
         }
 
         public bool ValidateCellInput(IntVect2 key, List<IntVect2> path) {
             PlayableCell cell = GetCell(key);
-            if (CellIsConnected(key, path) &&
+            /* First point, can only be a valid source */ 
+            if (path.Count == 0 &&
+                    cell.Source != null &&
+                    cell.Source.PaintColour != ShanghaiUtils.PaintColour.NONE) {
+                return true;
+            } else if (CellIsConnected(key, path) &&
                     GetCell(key).IsFree() &&
                     CheckPrevCellPositions(key, path)) {
                 UpdateCellPipeType(cell, path);
@@ -44,29 +49,17 @@ namespace Shanghai.Grid {
             return _Cells[key.y][key.x];
         }
 
-        public SourceCell GetSourceCell(int key) {
-            return _SourceRow.GetCell(key);
-        }
-
-        public Source GetSourceFromCell(int key) {
-            return _SourceRow.GetCell(key).Source;
-        }
-
-        public void ResetSourceCell(int key) {
-            _SourceRow.ResetSourceCell(key);
-        }
-
         public void SetPath(List<IntVect2> path) {
             if (path.Count < 1) {
                 return;
             }
             PlayableCell finalCell = GetCell(path[path.Count - 1]);
-            if (finalCell.TargetID == "") {
+            if (finalCell.Target == null) {
                 ResetCellsInPath(path);
                 Messenger.Broadcast(EVENT_MISSION_FAILED);
                 return;
             } else {
-                //TODO create an active mission.
+                //NOTE: shanghai.cs will create an Active mission from the path
             }
             Messenger<List<IntVect2>>.Broadcast(EVENT_SET_PATH, path);
         }
@@ -95,6 +88,11 @@ namespace Shanghai.Grid {
             Messenger<PlayableCell>.Broadcast(PlayableCell.EVENT_CELL_UPDATED, cell);
         }
 
+        public void KillCell(PlayableCell cell) {
+            cell.State = PlayableCell.CellState.DEAD;
+            Messenger<PlayableCell>.Broadcast(PlayableCell.EVENT_CELL_UPDATED, cell);
+        }
+
         public void ResetAllCells(bool silent) {
             foreach (List<PlayableCell> row in _Cells) {
                 foreach (PlayableCell cell in row) {
@@ -120,22 +118,12 @@ namespace Shanghai.Grid {
             Messenger<List<List<PlayableCell>>>.Broadcast(EVENT_GRID_UPDATED, _Cells);
         }
 
-        public void IncreaseCellBounty(IntVect2 cellKey, int amount) {
-            PlayableCell cell = GetCell(cellKey);
-            cell.Bounty += amount;
-            Messenger<PlayableCell>.Broadcast(PlayableCell.EVENT_CELL_UPDATED, cell);
-        }
-
         public void ResetCellsProgress(List<IntVect2> path) {
             foreach (IntVect2 cellKey in path) {
                 PlayableCell cell = GetCell(cellKey);
                 cell.Progress = 0.0f;
             }
             Messenger<List<List<PlayableCell>>>.Broadcast(EVENT_GRID_UPDATED, _Cells);
-        }
-
-        public void OnTelegramDropped(int key, Source source) {
-            _SourceRow.UpdateSourceCell(key, source);
         }
 
         private bool CheckPrevCellPositions(IntVect2 key, List<IntVect2> path) {
@@ -159,9 +147,7 @@ namespace Shanghai.Grid {
 
         private bool CellIsConnected(IntVect2 key, List<IntVect2> path) {
             if (path.Count < 1) {
-                if (key.y == 0) {
-                    return _SourceRow.HasSource(key.x);
-                }
+                // nothing yet
             } else {
                 IntVect2 prevKey = GetCell(path[path.Count - 1]).Key;
                 if ((Mathf.Abs(key.x - prevKey.x) == 1 && (key.y == prevKey.y)) ||

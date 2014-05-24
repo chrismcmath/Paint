@@ -4,6 +4,7 @@ using Shanghai.Grid;
 
 namespace Shanghai.Controllers {
     public class CellController : MonoBehaviour {
+        public static readonly string EVENT_CELL_CLICKED = "EVENT_CELL_CLICKED";
         public static readonly string EVENT_CELL_DRAGGED = "EVENT_CELL_DRAGGED";
         public static readonly string EVENT_CELL_DRAG_END = "EVENT_CELL_DRAG_END";
 
@@ -12,27 +13,37 @@ namespace Shanghai.Controllers {
         public static readonly string TARGET_PREFIX = "target";
         public static readonly string OBSTACLE_PREFIX = "obstacle";
 
+        public static readonly float FULL_ALPHA = 1.0f;
+
         public IntVect2 Key;
         private GameObject _CurrentObject = null;
 
         public UISprite PipeSprite;
-        public UISprite ClientSprite;
+        public UISprite SourceSprite;
         public UISprite TargetSprite;
         public UISprite ProgressSprite;
-        public UILabel BountyLabel;
+        public UISprite BackgroundSprite;
 
         public void UpdateCell(PlayableCell cell) {
             UpdateSprite(PipeSprite, PIPE_PREFIX, GetPipeString(cell.Pipe));
-            UpdateSprite(ClientSprite, CLIENT_PREFIX, cell.ClientID);
+            Debug.Log("source: " + cell.Source + " target: " + cell.Target);
+            UpdateColour(SourceSprite, cell.Source);
+            UpdateColour(TargetSprite, cell.Target);
+
+            if (cell.State == PlayableCell.CellState.DEAD) {
+                BackgroundSprite.color = Color.black;
+            }
+
             ProgressSprite.fillAmount = cell.Progress;
+        }
 
-            BountyLabel.text = cell.Bounty > 0 ? string.Format("{0}", cell.Bounty) : "";
-
-            if (cell.TargetID != "") {
-                TargetSprite.color = ShanghaiConfig.Instance.MinistryColours[cell.TargetID];
-                TargetSprite.alpha = ShanghaiConfig.Instance.MissionTargetAlpha;
+        private void UpdateColour(UISprite sprite, ColouredCellAsset asset) {
+            if (asset == null) { 
+                sprite.alpha = 0;
             } else {
-                TargetSprite.alpha = 0;
+                sprite.alpha = FULL_ALPHA;
+                Debug.Log("set color to " + ShanghaiUtils.GetColour(asset.PaintColour));
+                sprite.color = ShanghaiUtils.GetColour(asset.PaintColour);
             }
         }
 
@@ -92,13 +103,16 @@ namespace Shanghai.Controllers {
             }
         }
 
+        public void OnClick() {
+            Debug.Log("clicked " + Key);
+            Messenger<IntVect2>.Broadcast(EVENT_CELL_CLICKED, Key);
+        }
+
         public void OnDrag(Vector2 delta) {
             Messenger<IntVect2>.Broadcast(EVENT_CELL_DRAGGED, Key);
         }
 
         public void OnDragOver(GameObject go) {
-            if (go.GetComponent<TelegramController>() != null) return;
-
             Messenger<IntVect2>.Broadcast(EVENT_CELL_DRAGGED, Key);
         }
 

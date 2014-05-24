@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Shanghai.Entities;
 using Shanghai.Grid;
 using Shanghai.Controllers;
+using Shanghai.Path;
 
 namespace Shanghai {
     public class Shanghai : MonoBehaviour {
@@ -13,18 +14,14 @@ namespace Shanghai {
         public enum GameState {START=0, PLAY, END_GAME};
 
         public PlayGridController GridController;
-        public SourceRowController SourceRowController;
-        public TargetsController TargetsController;
-        public ClientsController ClientsController;
-        public TitleController TitleController;
-        public GameOverController GameOverController;
 
         public UILabel DebugLabel;
 
-        private GameState _State = GameState.START;
+        private GameState _State = GameState.PLAY;
         private float _CurrentTime;
-        private float _MissionInterval = 0.0f;
+        private float _ColourInterval = 0.0f;
         private float _SourceInterval = 0.0f;
+        private float _TargetInterval = 0.0f;
         private GameModel _Model;
         private ShanghaiConfig _Config;
         private EventGenerator _Generator;
@@ -36,10 +33,12 @@ namespace Shanghai {
 
 
             // Update GUI
-
             Messenger<List<IntVect2>>.AddListener(Grid.Grid.EVENT_SET_PATH, OnSetPath);
             Messenger.AddListener(Grid.Grid.EVENT_MISSION_FAILED, OnMissionFailed);
             Messenger.AddListener(EVENT_GAME_START, OnGameStart);
+            Messenger.AddListener(PathDrawer.EVENT_RESET_COLOUR_INTERVAL, OnResetColourInterval);
+
+            OnGameStart();
         }
 
         public void CreateAssets() {
@@ -48,27 +47,13 @@ namespace Shanghai {
             } else {
                 Debug.Log("GridController not set");
             }
-            if (SourceRowController != null) {
-                SourceRowController.CreateTable(GameModel.GRID_SIZE);
-            } else {
-                Debug.Log("SourceRowController not set");
-            }
-            if (TargetsController != null) {
-                TargetsController.CreateTable(_Model.Targets);
-            } else {
-                Debug.Log("TargetsControlle rnot set");
-            }
-            if (ClientsController != null) {
-                ClientsController.CreateTable(_Model.Clients);
-            } else {
-                Debug.Log("ClientsController not set");
-            }
         }
 
         public void OnDestroy() {
             Messenger<List<IntVect2>>.RemoveListener(Grid.Grid.EVENT_SET_PATH, OnSetPath);
             Messenger.RemoveListener(Grid.Grid.EVENT_MISSION_FAILED, OnMissionFailed);
             Messenger.RemoveListener(EVENT_GAME_START, OnGameStart);
+            Messenger.RemoveListener(PathDrawer.EVENT_RESET_COLOUR_INTERVAL, OnResetColourInterval);
         }
 
         public void Update() {
@@ -84,8 +69,6 @@ namespace Shanghai {
         }
 
         public void OnGameStart() {
-            TitleController.gameObject.SetActive(false);
-            GameOverController.gameObject.SetActive(false);
             _Model.Reset();
             CreateAssets();
             _State = GameState.PLAY;
@@ -94,27 +77,35 @@ namespace Shanghai {
 
         private void GameLoop() {
             _CurrentTime += Time.deltaTime;
-            _MissionInterval -= Time.deltaTime;
+            _ColourInterval -= Time.deltaTime;
             _SourceInterval -= Time.deltaTime;
-            DebugLabel.text = string.Format("{0:00}\nMission:{1:00}\nSource:{1:00}", _CurrentTime, _MissionInterval, _SourceInterval);
+            _TargetInterval -= Time.deltaTime;
+            //DebugLabel.text = string.Format("{0:00}\nMission:{1:00}\nSource:{1:00}", _CurrentTime, _ColourInterval, _SourceInterval);
 
-            if (_MissionInterval < 0.0f) {
-                _MissionInterval = _Config.MissionInterval;
-                _Generator.GenerateMission();
+            if (_ColourInterval < 0.0f) {
+                _ColourInterval = _Config.ColourInterval;
+                _Model.ChangeColour();
             }
             if (_SourceInterval < 0.0f) {
                 _SourceInterval = _Config.SourceInterval;
                 _Generator.GenerateSource();
             }
+            if (_TargetInterval < 0.0f) {
+                _TargetInterval = _Config.TargetInterval;
+                _Generator.GenerateTarget();
+            }
 
             UpdateActiveMissions(Time.deltaTime);
+            /*
             ReplinishTargets(Time.deltaTime);
             DrainClients(Time.deltaTime);
             TickMissions(Time.deltaTime);
 
             CheckForEndGame();
+            */
         }
 
+        /*
         public void CheckForEndGame() {
             foreach (KeyValuePair<string, Client> client in _Model.Clients) {
                 if (client.Value.Reputation <= _Config.MinReputation) {
@@ -122,14 +113,14 @@ namespace Shanghai {
                 }
             }
         }
+        */
 
         private void EndGame() {
-            GameOverController.gameObject.SetActive(true);
-            GameOverController.Populate(_Model.Targets, _Model.Money);
             _Model.CanDraw = false;
             _State = GameState.END_GAME;
         }
 
+        /*
         public void ReplinishTargets(float delta) {
             foreach (KeyValuePair<string, Target> target in _Model.Targets) {
                 target.Value.ReplenishHealth(delta);
@@ -155,12 +146,12 @@ namespace Shanghai {
                 }
             }
 
-            /* Garbage collection */
+            /* Garbage collection */ /*
             foreach (Mission mission in garbage) {
                 _Model.Missions.Remove(mission);
             }
         }
-
+*/
         public void UpdateActiveMissions(float delta) {
             List<ActiveMission> garbage = new List<ActiveMission>();
             foreach (ActiveMission actMiss in _Model.ActiveMissions) {
@@ -168,10 +159,7 @@ namespace Shanghai {
                     garbage.Add(actMiss);
                     //TODO: active mission finished logic here
 
-                    Target target = _Model.Targets[actMiss.Mission.TargetID];
-                    target.DockHealth(actMiss.Bounty);
-                    Client client = _Model.Clients[actMiss.Mission.ClientID];
-                    client.IncReputation();
+                    //NOTE: success logic here
                 }
             }
 
@@ -186,22 +174,23 @@ namespace Shanghai {
                 _Model.CanDraw = true;
             }
 
-            Source source = _Model.Grid.GetSourceFromCell(path[0].x);
-            PlayableCell cell = _Model.Grid.GetCell(path[path.Count-1]);
-            Mission mission = _Model.GetMissionFromCellKey(path[path.Count-1]);
+            PlayableCell startCell = _Model.Grid.GetCell(path[0]);
+            PlayableCell endCell = _Model.Grid.GetCell(path[path.Count-1]);
 
-            if (source.TargetID != mission.TargetID) {
+            if (startCell.Source.PaintColour != endCell.Target.PaintColour) {
                 _Model.Grid.ResetCellsInPath(path);
-                _Model.Grid.ResetSourceCell(path[0].x);
-                Client client = _Model.Clients[mission.ClientID];
-                client.DockReputation();
+                _Model.Grid.KillCell(endCell);
             } else {
-                _Model.ActiveMissions.Add(new ActiveMission(mission, path, source));
+                _Model.ActiveMissions.Add(new ActiveMission(path, startCell.Source, endCell.Target));
             }
         }
 
         private void OnMissionFailed() {
             Debug.Log("mission failed");
+        }
+
+        private void OnResetColourInterval() {
+            _ColourInterval = 0.0f;
         }
     }
 }

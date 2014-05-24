@@ -4,16 +4,17 @@ using System.Collections.Generic;
 
 namespace Shanghai {
     public class ShanghaiConfig : MonoSingleton<ShanghaiConfig> {
-        public float MissionInterval = 8.0f; //the 'agents' that appear on the map
-        public float SourceInterval = 3.0f; //the telegrams that come in
-        public float CellFillPerSecond = 0.5f; //the amount a cell is filled per second (1 is full)
+        public float ColourInterval = 8.0f;
+        public float SourceInterval = 3.0f;
+        public float TargetInterval = 3.0f;
+        public float CellFillPerSecond = 0.5f;
 
         public int BountyMin = 50;
         public int BountyMax = 2000;
         public float BountyDeviancePower = 3.0f;
 
-        public float MissionWaitTimeMedium = 5.0f;
-        public float MissionWaitTimeDeviance = 2.0f;
+        public float SourceWaitTime = 10.0f;
+        public float TargetWaitTime = 10.0f;
 
         public int PacketSize = 100;
 
@@ -32,20 +33,12 @@ namespace Shanghai {
         public float MissionFlagAlpha = 0.7f;
         public float MissionTargetAlpha = 0.5f;
 
-        public Color EducationColour = new Color(0.0f, 0.0f, 0.0f);
-        public Color EnvironmentColour = new Color(0.0f, 0.0f, 0.0f);
-        public Color HealthColour = new Color(0.0f, 0.0f, 0.0f);
-        public Color JusticeColour = new Color(0.0f, 0.0f, 0.0f);
-        public Color TradeColour = new Color(0.0f, 0.0f, 0.0f);
-
-        public Dictionary<string, Color> MinistryColours = new Dictionary<string, Color>();
-
-        public void Awake() {
-            MinistryColours.Add("education", EducationColour);
-            MinistryColours.Add("environment", EnvironmentColour);
-            MinistryColours.Add("health", HealthColour);
-            MinistryColours.Add("justice", JusticeColour);
-            MinistryColours.Add("trade", TradeColour);
-        }
+        public Color RED = new Color(0.0f, 0.0f, 0.0f);
+        public Color BLUE = new Color(0.0f, 0.0f, 0.0f);
+        public Color YELLOW = new Color(0.0f, 0.0f, 0.0f);
+        public Color GREEN = new Color(0.0f, 0.0f, 0.0f);
+        public Color PURPLE = new Color(0.0f, 0.0f, 0.0f);
+        public Color ORANGE = new Color(0.0f, 0.0f, 0.0f);
+        public Color GREY = new Color(0.0f, 0.0f, 0.0f);
     }
 }

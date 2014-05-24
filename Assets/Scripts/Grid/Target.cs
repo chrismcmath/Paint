@@ -3,13 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace Shanghai.Grid {
-    public class Source : ColouredCellAsset {
+    public class Target : ColouredCellAsset {
         public float TTL;
 
         public bool IsActive = false;
 
-        public Source(IntVect2 cellKey, float ttl) {
+        public Target(IntVect2 cellKey, ShanghaiUtils.PaintColour colour, float ttl) {
             CellKey = cellKey;
+            PaintColour = colour;
             TTL = ttl;
         }
 

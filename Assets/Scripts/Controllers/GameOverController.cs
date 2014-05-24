@@ -14,6 +14,7 @@ namespace Shanghai.Controllers {
         public UILabel FinalMoney;
 
         public void Populate(Dictionary<string, Target> targets, int finalMoney) {
+        /*
             FinalMoney.text = string.Format("{0}", finalMoney);
 
             Target lowestTarget = targets["education"];
@@ -24,6 +25,7 @@ namespace Shanghai.Controllers {
                 }
             }
             Headline.spriteName = string.Format("{0}_{1}", HEADLINE_PREFIX, lowestTarget.Key);
+        */
         }
 
         public void OnClick() {

@@ -23,7 +23,7 @@ namespace Shanghai.Controllers {
 
         private void OnCellUpdated(PlayableCell cell) {
             Transform cellTrans = transform.Find(string.Format(CELL_NAME_FORMAT, cell.Key.y, cell.Key.x));
-            if (cell != null) {
+            if (cell != null && cellTrans != null) {
                 CellController cellCtr = cellTrans.GetComponent<CellController>();
                 if (cellCtr != null) {
                     cellCtr.UpdateCell(cell);

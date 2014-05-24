@@ -7,19 +7,35 @@ using Shanghai.Controllers;
 
 namespace Shanghai.Path {
     public class PathDrawer : MonoBehaviour {
+        public static readonly string EVENT_RESET_COLOUR_INTERVAL = "EVENT_RESET_COLOUR_INTERVAL";
+
         private List<IntVect2> _Path = new List<IntVect2>();
         private GameModel _Model;
         private IntVect2 _CurrentCell = null;
 
         public void Awake() {
             Messenger<IntVect2>.AddListener(CellController.EVENT_CELL_DRAGGED, OnCellDragged);
+            Messenger<IntVect2>.AddListener(CellController.EVENT_CELL_CLICKED, OnCellClicked);
             Messenger.AddListener(CellController.EVENT_CELL_DRAG_END, OnCellDragEnd);
             _Model = GameModel.Instance;
         }
 
         public void OnDestroy() {
             Messenger<IntVect2>.RemoveListener(CellController.EVENT_CELL_DRAGGED, OnCellDragged);
+            Messenger<IntVect2>.RemoveListener(CellController.EVENT_CELL_CLICKED, OnCellClicked);
             Messenger.RemoveListener(CellController.EVENT_CELL_DRAG_END, OnCellDragEnd);
+        }
+
+        private void OnCellClicked(IntVect2 cellKey) {
+            PlayableCell cell = _Model.Grid.GetCell(cellKey);
+            if (cell != null &&
+                cell.Source != null &&
+                cell.Source.PaintColour == ShanghaiUtils.PaintColour.NONE) {
+
+                cell.Source.PaintColour = _Model.PaintColour;
+                Messenger<PlayableCell>.Broadcast(PlayableCell.EVENT_CELL_UPDATED, cell);
+                Messenger.Broadcast(EVENT_RESET_COLOUR_INTERVAL);
+            }
         }
 
         private void OnCellDragged(IntVect2 cellKey) {
