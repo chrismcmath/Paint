@@ -58,10 +58,11 @@ namespace Shanghai.ModelControllers {
             if (path.Count == 0 &&
                     cell.Source != null &&
                     cell.Source.PaintColour != ShanghaiUtils.PaintColour.NONE) {
+                GameModel.Instance.PathColour = cell.Source.PaintColour;
                 return true;
             } else if (CellIsConnected(key, path) &&
                     CanDrawOnCell(GetCell(key), GetCell(path[0]))) {
-                UpdateCellPipeType(cell, path);
+                cell.HasPath = true;
                 Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
                 return true;
             }
@@ -120,6 +121,7 @@ namespace Shanghai.ModelControllers {
             return false;
         }
 
+        /*
         private void UpdateCellPipeType(Cell cell, List<IntVect2> path) {
         //TODO: Left is coming from chance card
             if (path.Count < 1) {
@@ -194,5 +196,6 @@ namespace Shanghai.ModelControllers {
             }
             Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, prevCell);
         }
+        */
     }
 }

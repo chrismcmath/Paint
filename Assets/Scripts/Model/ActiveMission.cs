@@ -11,8 +11,8 @@ namespace Shanghai.Model {
         public Source Source;
         public Target Target;
 
-        private float CurrentCellProgress = 0.0f;
-        private int CurrentCellID = 0;
+        public float CurrentCellProgress = 0.0f;
+        public int CurrentCellID = 0;
         private ShanghaiConfig _Config;
 
         public ActiveMission(List<IntVect2> path, Source source, Target target) {
@@ -30,7 +30,7 @@ namespace Shanghai.Model {
                 CurrentCellProgress = 0.0f;
                 CurrentCellID++;
 
-                if (CurrentCellID >= Path.Count) {
+                if (CurrentCellID >= (Path.Count - 1)) {
                     return true;
                 }
             }

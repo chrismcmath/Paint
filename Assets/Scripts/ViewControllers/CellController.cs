@@ -46,6 +46,12 @@ namespace Shanghai.ViewControllers {
 
             if (cell.State == Cell.CellState.DEAD) {
                 BackgroundSprite.color = Color.black;
+            } else {
+                if (cell.Colour == ShanghaiUtils.PaintColour.NONE) {
+                    BackgroundSprite.color = Color.white;
+                } else {
+                    BackgroundSprite.color = ShanghaiUtils.GetColour(cell.Colour);
+                }
             }
 
             ProgressSprite.fillAmount = cell.Progress;

@@ -9,6 +9,7 @@ namespace Shanghai.Model {
 
         public IntVect2 Key;
         public bool Selected = false;
+        public bool HasPath = false;
 
         public enum PipeType {NONE=0, HORI, VERT, NE, NW, SE, SW, LEFT, RIGHT, TOP, BOTTOM};
         public enum CellState {EMPTY=0, SOURCE, TARGET, DEAD};
@@ -47,6 +48,7 @@ namespace Shanghai.Model {
         public float TotalProgress = 0.0f;
 
         public CellState State = CellState.EMPTY;
+        public ShanghaiUtils.PaintColour Colour = ShanghaiUtils.PaintColour.NONE;
 
         public Cell(IntVect2 key) {
             Key = key;
@@ -58,16 +60,18 @@ namespace Shanghai.Model {
             Progress = 0.0f;
             TotalProgress = 0.0f;
             State = CellState.EMPTY;
-            Pipe = PipeType.NONE;
+            HasPath = false;
+            //Pipe = PipeType.NONE;
         }
 
         public void KillCell() {
             Reset();
             State = Cell.CellState.DEAD;
+            Colour = ShanghaiUtils.PaintColour.NONE;
         }
 
         public bool IsFree() {
-            return Pipe == PipeType.NONE && State == CellState.EMPTY;
+            return !HasPath && State == CellState.EMPTY;
         }
 
         public bool HasMission() {

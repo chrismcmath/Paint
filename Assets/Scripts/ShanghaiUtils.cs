@@ -81,5 +81,18 @@ namespace Shanghai {
                     break;
             }
         }
+
+        public static List<Vector2> GetScreenCoordsFromCellKeys(List<IntVect2> path, Dictionary<IntVect2, Vector2> cellPositions) {
+            List<Vector2> pathPoints = new List<Vector2>();
+            foreach (IntVect2 cellKey in path) {
+                if (cellPositions == null || !cellPositions.ContainsKey(cellKey)) {
+                    Debug.LogError("Could not find key " + cellKey + " in CellPositions dictionary, or CellPositions not instantiated");
+                    return new List<Vector2>();
+                } else {
+                    pathPoints.Add(cellPositions[cellKey]);
+                }
+            }
+            return pathPoints;
+        }
     }
 }

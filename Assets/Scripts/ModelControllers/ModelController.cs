@@ -9,6 +9,7 @@ using Shanghai.ViewControllers;
 namespace Shanghai.ModelControllers {
     public class ModelController : MonoBehaviour {
         public static readonly string EVENT_RESET_COLOUR_INTERVAL = "EVENT_RESET_COLOUR_INTERVAL";
+        public static readonly string EVENT_ACTIVE_MISSION_FINISHED = "EVENT_ACTIVE_MISSION_FINISHED";
 
         private GameModel _Model;
         private GridModelController _GridModelController = null;
@@ -85,29 +86,22 @@ namespace Shanghai.ModelControllers {
         }
 
         private void SetPath() {
-            Debug.Log("SetPath");
             if (_Model.Path.Count < 1) {
-            Debug.Log("1");
                 return;
             }
 
-            Debug.Log("2");
             List<IntVect2> path = PrunePath(_Model.Path);
             if (path.Count < 2) {
                 return;
             }
-            Debug.Log("pruned path length: " + path.Count);
 
-            Debug.Log("3");
             Cell startCell = _Model.Grid.GetCell(path[0]);
             Cell endCell = _Model.Grid.GetCell(path[path.Count-1]);
-            Debug.Log("4");
 
             if (startCell.Source.PaintColour != endCell.Target.PaintColour) {
                 Debug.LogError("This can't be happening!!!");
             } else {
-            Debug.Log("5");
-                _Model.ActiveMissions.Add(new ActiveMission(path, startCell.Source, endCell.Target));
+                _Model.AddActiveMission(new ActiveMission(path, startCell.Source, endCell.Target));
             }
         }
 
@@ -153,21 +147,37 @@ namespace Shanghai.ModelControllers {
         }
 
         public void UpdateActiveMissions(float delta) {
-            List<ActiveMission> garbage = new List<ActiveMission>();
             foreach (ActiveMission actMiss in _Model.ActiveMissions) {
                 if (actMiss.Progress(delta * _Config.CellFillPerSecond)) {
-                    Debug.Log("add mission to garbage");
-                    garbage.Add(actMiss);
-                    //TODO: active mission finished logic here
-
-                    //NOTE: success logic here
+                    actMiss.Path.Reverse();
+                    float interval = 0.1f;
+                    int cumulativePoints = 1;
+                    foreach (IntVect2 cellKey in actMiss.Path) {
+                        Cell cell = _GridModelController.GetCell(cellKey);
+                        if (cell.Target != null) {
+                            cumulativePoints *= 2;
+                        }
+                        int cellPoints = cell.Colour == actMiss.Source.PaintColour ? cumulativePoints * 2 : cumulativePoints;
+                        StartCoroutine(PaintCell(interval, cell, actMiss.Source.PaintColour, cellPoints));
+                        interval += 0.1f;
+                    }
+                    StartCoroutine(RemoveActiveMission(interval, actMiss));
                 }
             }
+        }
 
-            /* Garbage collection */
-            foreach (ActiveMission actMiss in garbage) {
-                _Model.RemoveActiveMission(actMiss);
-            }
+        private IEnumerator PaintCell(float waitTime, Cell cell, ShanghaiUtils.PaintColour colour, int points) {
+            yield return new WaitForSeconds(waitTime);
+            cell.Reset();
+            cell.Colour = colour;
+            _Model.Money += points;
+            Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
+        }
+
+
+        private IEnumerator RemoveActiveMission(float waitTime, ActiveMission actMiss) {
+            yield return new WaitForSeconds(waitTime);
+            _Model.RemoveActiveMission(actMiss);
         }
 
         public void GameLoop() {

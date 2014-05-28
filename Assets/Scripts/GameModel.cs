@@ -14,6 +14,9 @@ namespace Shanghai {
         public static readonly string EVENT_CLIENT_UPDATED = "EVENT_CLIENT_UPDATED";
         public static readonly string EVENT_TARGET_UPDATED = "EVENT_TARGET_UPDATED";
 
+        public static readonly string EVENT_ACTIVE_MISSION_ADDED = "EVENT_ACTIVE_MISSION_ADDED";
+        public static readonly string EVENT_ACTIVE_MISSION_REMOVED = "EVENT_ACTIVE_MISSION_REMOVED";
+
         public static readonly int GRID_SIZE = 6;
 
         private Grid _Grid;
@@ -68,6 +71,8 @@ namespace Shanghai {
             get { return _Path; }
         }
 
+        public ShanghaiUtils.PaintColour PathColour = ShanghaiUtils.PaintColour.NONE;
+
         // Use to get position on screen given a particular key
         public Dictionary<IntVect2, Vector2> CellPositions = null;
 
@@ -109,10 +114,16 @@ namespace Shanghai {
             Messenger<List<List<Cell>>>.Broadcast(Grid.EVENT_GRID_UPDATED, _Grid.Cells);
         }
 
+        public void AddActiveMission(ActiveMission actMiss) {
+            ActiveMissions.Add(actMiss);
+            Messenger<ActiveMission>.Broadcast(EVENT_ACTIVE_MISSION_ADDED, actMiss);
+        }
+
         public void RemoveActiveMission(ActiveMission actMiss) {
             _Grid.ResetCellsInPath(actMiss.Path);
             // remove source and target
             _ActiveMissions.Remove(actMiss);
+            Messenger<ActiveMission>.Broadcast(EVENT_ACTIVE_MISSION_REMOVED, actMiss);
         }
 
         //TODO: (CM) Should this be here? It's more like behaviour
@@ -125,6 +136,7 @@ namespace Shanghai {
             Targets.Add(target);
             Cell cell = _Grid.GetCell(target.CellKey);
             cell.Target = target;
+            cell.Colour = ShanghaiUtils.PaintColour.NONE;
             Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
         } 
 
@@ -132,6 +144,7 @@ namespace Shanghai {
             Sources.Add(source);
             Cell cell = _Grid.GetCell(source.CellKey);
             cell.Source = source;
+            cell.Colour = ShanghaiUtils.PaintColour.NONE;
             Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
         } 
 

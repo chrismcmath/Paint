@@ -18,7 +18,7 @@ namespace Shanghai.ViewControllers {
             Vector2[] linePoints = new Vector2[2];
             linePoints[0] = new Vector2(0,0);
             linePoints[1] = new Vector2(Screen.width, Screen.height);
-            _Path = new VectorLine("active path",  linePoints, lineMaterial, 2.0f, LineType.Continuous, Joins.Weld);
+            _Path = new VectorLine("active path",  linePoints, lineMaterial, 5.0f, LineType.Continuous, Joins.Weld);
             _Model = GameModel.Instance;
         }
 
@@ -26,31 +26,20 @@ namespace Shanghai.ViewControllers {
         }
 
         public void Update() {
+            //NOTE: needs optimization - check for change
             if (_Model.Path != null && _Model.Path.Count > 0) {
-                Debug.Log("update line");
-                List<Vector2> pathPoints = GetScreenCoordsFromCellKeys(_Model.Path);
-                int i = 0;
-                foreach (Vector2 point in pathPoints) {
-                    Debug.Log(i++ + ": " + point);
-                }
+                List<Vector2> pathPoints = ShanghaiUtils.GetScreenCoordsFromCellKeys(_Model.Path, _Model.CellPositions);
                 if (pathPoints.Count >= 2) {
                     _Path.Resize(pathPoints.ToArray());
+                    lineMaterial.SetColor("_TintColor", ShanghaiUtils.GetColour(_Model.PathColour));
+                    _Path.active = true;
+                    _Path.Draw();
                 }
+            } else {
+                _Path.active = false;
                 _Path.Draw();
             }
         }
 
-        private List<Vector2> GetScreenCoordsFromCellKeys(List<IntVect2> path) {
-            List<Vector2> pathPoints = new List<Vector2>();
-            foreach (IntVect2 cellKey in path) {
-                if (_Model.CellPositions == null || !_Model.CellPositions.ContainsKey(cellKey)) {
-                    Debug.LogError("Could not find key " + cellKey + " in CellPositions dictionary, or CellPositions not instantiated");
-                    return new List<Vector2>();
-                } else {
-                    pathPoints.Add(_Model.CellPositions[cellKey]);
-                }
-            }
-            return pathPoints;
-        }
     }
 }
