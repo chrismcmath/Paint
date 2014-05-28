@@ -10,11 +10,11 @@ namespace Shanghai.ViewControllers {
         public static readonly string HEADLINE_PREFIX = "headline";
 
         public UISprite Headline;
-        public UILabel FinalMoney;
+        public UILabel FinalPoint;
 
-        public void Populate(Dictionary<string, Target> targets, int finalMoney) {
+        public void Populate(Dictionary<string, Target> targets, int finalPoint) {
         /*
-            FinalMoney.text = string.Format("{0}", finalMoney);
+            FinalPoint.text = string.Format("{0}", finalMoney);
 
             Target lowestTarget = targets["education"];
             foreach(KeyValuePair<string, Target> targetPair in targets) {

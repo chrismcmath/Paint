@@ -7,7 +7,7 @@ using Shanghai.ViewControllers;
 
 namespace Shanghai {
     public class GameModel : MonoSingleton<GameModel> {
-        public static readonly string EVENT_MONEY_CHANGED = "EVENT_MONEY_CHANGED";
+        public static readonly string EVENT_POINT_CHANGED = "EVENT_MONEY_CHANGED";
         public static readonly string EVENT_COLOUR_CHANGED = "EVENT_COLOUR_CHANGED";
         public static readonly string EVENT_SOURCE_CHANGED = "EVENT_SOURCE_CHANGED";
 
@@ -16,8 +16,6 @@ namespace Shanghai {
 
         public static readonly string EVENT_ACTIVE_MISSION_ADDED = "EVENT_ACTIVE_MISSION_ADDED";
         public static readonly string EVENT_ACTIVE_MISSION_REMOVED = "EVENT_ACTIVE_MISSION_REMOVED";
-
-        public static readonly int GRID_SIZE = 6;
 
         private Grid _Grid;
         public Grid Grid {
@@ -55,13 +53,13 @@ namespace Shanghai {
             set { _CanDraw = value; }
         }
 
-        private int _Money = 0;
-        public int Money {
-            get { return _Money; }
+        private int _Point = 0;
+        public int Point {
+            get { return _Point; }
             set {
-                if (value != _Money) {
-                    _Money = value;
-                    Messenger<int>.Broadcast(EVENT_MONEY_CHANGED, _Money);
+                if (value != _Point) {
+                    _Point = value;
+                    Messenger<int>.Broadcast(EVENT_POINT_CHANGED, _Point);
                 }
             }
         }
@@ -98,7 +96,7 @@ namespace Shanghai {
             //_Grid.ResetAllCells(true);
 
             _ActiveMissions = new List<ActiveMission>();
-            Money = 0;
+            Point = 0;
             _CanDraw = true;
             
         }

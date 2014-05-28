@@ -42,7 +42,10 @@ namespace Shanghai.ViewControllers {
 
         // manually updated by ActiveMissionsViewController
         public void Update() {
-            _TrackPath.Resize(GetTrackPoints());
+            // Stop drawing once the ID reaches the last point
+            if (_ActMission.CurrentCellID < _ColourPathPoints.Count -1) {
+                _TrackPath.Resize(GetTrackPoints());
+            }
             _TrackPath.Draw();
         }
 

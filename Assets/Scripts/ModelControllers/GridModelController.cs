@@ -11,8 +11,6 @@ namespace Shanghai.ModelControllers {
         public static readonly string EVENT_GRID_UPDATED = "EVENT_GRID_UPDATED";
         public static readonly string EVENT_MISSION_FAILED = "EVENT_MISSION_FAILED";
 
-        public const int GRID_SIZE = 6; 
-
         private Grid _Grid = null;
 
         public GridModelController() {
@@ -21,9 +19,9 @@ namespace Shanghai.ModelControllers {
         }
 
         private void BuildGrid() {
-            for (int y = 0; y < GRID_SIZE; y++) {
+            for (int y = 0; y < ShanghaiConfig.Instance.GridSize; y++) {
                 List<Cell> row = new List<Cell>();
-                for (int x = 0; x < GRID_SIZE; x++) {
+                for (int x = 0; x < ShanghaiConfig.Instance.GridSize; x++) {
                     row.Add(new Cell(new IntVect2(x,y)));
                 }
                 _Grid.Cells.Add(row);
@@ -59,6 +57,7 @@ namespace Shanghai.ModelControllers {
                     cell.Source != null &&
                     cell.Source.PaintColour != ShanghaiUtils.PaintColour.NONE) {
                 GameModel.Instance.PathColour = cell.Source.PaintColour;
+                cell.Source.Locked = true;
                 return true;
             } else if (CellIsConnected(key, path) &&
                     CanDrawOnCell(GetCell(key), GetCell(path[0]))) {

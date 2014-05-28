@@ -30,7 +30,7 @@ namespace Shanghai {
 
         public void CreateAssets() {
             if (GridController != null) {
-                GridController.CreateTable(GameModel.GRID_SIZE);
+                GridController.CreateTable();
             } else {
                 Debug.Log("GridController not set");
             }

@@ -92,11 +92,13 @@ namespace Shanghai.ModelControllers {
 
             List<IntVect2> path = PrunePath(_Model.Path);
             if (path.Count < 2) {
+                Cell firstCell = _GridModelController.GetCell(_Model.Path[0]);
+                _GridModelController.KillCell(firstCell);
                 return;
             }
 
-            Cell startCell = _Model.Grid.GetCell(path[0]);
-            Cell endCell = _Model.Grid.GetCell(path[path.Count-1]);
+            Cell startCell = _GridModelController.GetCell(path[0]);
+            Cell endCell = _GridModelController.GetCell(path[path.Count-1]);
 
             if (startCell.Source.PaintColour != endCell.Target.PaintColour) {
                 Debug.LogError("This can't be happening!!!");
@@ -108,9 +110,10 @@ namespace Shanghai.ModelControllers {
         private List<IntVect2> PrunePath(List<IntVect2> originalPath) {
             List<IntVect2> prunedPath = new List<IntVect2>();
             
-            originalPath.Reverse();
+            List<IntVect2> reversedPath = new List<IntVect2>(originalPath);
+            reversedPath.Reverse();
             bool targetFound = false;
-            foreach (IntVect2 cellKey in originalPath) {
+            foreach (IntVect2 cellKey in reversedPath) {
                 if (!targetFound) {
                     Cell cell = _GridModelController.GetCell(cellKey);
                     if (cell.Target != null) {
@@ -170,7 +173,8 @@ namespace Shanghai.ModelControllers {
             yield return new WaitForSeconds(waitTime);
             cell.Reset();
             cell.Colour = colour;
-            _Model.Money += points;
+            _Model.Point += points;
+            RegenerateSurroundingCells(cell);
             Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
         }
 
@@ -178,6 +182,25 @@ namespace Shanghai.ModelControllers {
         private IEnumerator RemoveActiveMission(float waitTime, ActiveMission actMiss) {
             yield return new WaitForSeconds(waitTime);
             _Model.RemoveActiveMission(actMiss);
+        }
+
+        private void RegenerateSurroundingCells(Cell cell) {
+            IntVect2 cellKey = cell.Key;
+            AddCellByDeviation(cell.Key, new IntVect2(-1, 0));
+            AddCellByDeviation(cell.Key, new IntVect2(1, 0));
+            AddCellByDeviation(cell.Key, new IntVect2(0, -1));
+            AddCellByDeviation(cell.Key, new IntVect2(0, 1));
+        }
+
+        private void AddCellByDeviation(IntVect2 key, IntVect2 deviation) {
+            IntVect2 newKey = new IntVect2(key.x + deviation.x, key.y + deviation.y);
+            if (newKey.x > 0 && newKey.x < ShanghaiConfig.Instance.GridSize &&
+                    newKey.y > 0 && newKey.y < ShanghaiConfig.Instance.GridSize) {
+                Cell adjacentCell = _GridModelController.GetCell(newKey);
+                if (adjacentCell.State == Cell.CellState.DEAD) {
+                    _GridModelController.ResetCell(adjacentCell);
+                }
+            }
         }
 
         public void GameLoop() {
@@ -189,6 +212,7 @@ namespace Shanghai.ModelControllers {
 
             if (_ColourInterval <= 0.0f) {
                 _ColourInterval = _Config.ColourInterval;
+                UpdateSources();
                 _Model.ChangeColour();
             }
             if (_SourceInterval <= 0.0f) {
@@ -210,6 +234,16 @@ namespace Shanghai.ModelControllers {
 
             CheckForEndGame();
             */
+        }
+
+        private void UpdateSources() {
+            foreach (Source source in _Model.Sources) {
+                if (!source.Locked) {
+                    source.PaintColour = _Model.PaintColour;
+                    Cell cell = _GridModelController.GetCell(source.CellKey);
+                    Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
+                }
+            }
         }
 
         private void OnResetColourInterval() {

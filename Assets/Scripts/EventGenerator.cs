@@ -40,7 +40,7 @@ namespace Shanghai {
 
             float TTL = _Config.SourceWaitTime;
 
-            Source source = new Source(cellKey, TTL);
+            Source source = new Source(cellKey, TTL, _Model.PaintColour);
             Messenger<Source>.Broadcast(EVENT_SOURCE_CREATED, source);
             return true;
         }

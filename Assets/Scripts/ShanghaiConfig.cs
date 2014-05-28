@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace Shanghai {
     public class ShanghaiConfig : MonoSingleton<ShanghaiConfig> {
+        public int GridSize = 6;
+        public Material LineMaterial;
+
         public float ColourInterval = 8.0f;
         public float SourceInterval = 3.0f;
         public float TargetInterval = 3.0f;

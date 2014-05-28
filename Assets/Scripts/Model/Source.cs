@@ -7,10 +7,13 @@ namespace Shanghai.Model {
         public float TTL;
 
         public bool IsActive = false;
+        // locked is when a player starts drawing on it
+        public bool Locked = false;
 
-        public Source(IntVect2 cellKey, float ttl) {
+        public Source(IntVect2 cellKey, float ttl, ShanghaiUtils.PaintColour colour) {
             CellKey = cellKey;
             TTL = ttl;
+            PaintColour = colour;
         }
 
         public bool IsTTD(float delta) {

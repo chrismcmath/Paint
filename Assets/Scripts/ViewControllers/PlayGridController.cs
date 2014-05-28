@@ -39,12 +39,14 @@ namespace Shanghai.ViewControllers {
             }
         }
 
-        public void CreateTable(int size) {
+        public void CreateTable() {
             _Table = gameObject.GetComponent<UITable>();
             if (_Table == null) {
                 Debug.Log("UITable not initialized ");
                 return;
             }
+
+            _Table.columns = ShanghaiConfig.Instance.GridSize;
 
             GameObject cellPrefab = Resources.Load(CELL_PATH) as GameObject;
             if (cellPrefab == null) {
@@ -53,8 +55,8 @@ namespace Shanghai.ViewControllers {
 
             ShanghaiUtils.RemoveAllChildren(transform);
 
-            for (int y = 0; y < size; y++) {
-                for (int x = 0; x < size; x++) {
+            for (int y = 0; y < ShanghaiConfig.Instance.GridSize; y++) {
+                for (int x = 0; x < ShanghaiConfig.Instance.GridSize; x++) {
                     GameObject cell = GameObject.Instantiate(cellPrefab) as GameObject;
 
                     CellController cellCtr = cell.GetComponent<CellController>();
@@ -86,9 +88,6 @@ namespace Shanghai.ViewControllers {
             }
 
             GameModel.Instance.CellPositions = cellPositions;
-            foreach (KeyValuePair<IntVect2, Vector2> pair in GameModel.Instance.CellPositions) {
-                Debug.Log("k: " + pair.Key + " v: " + pair.Value);
-            }
         }
     }
 }
