@@ -3,8 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using Shanghai.Entities;
-using Shanghai.Grid;
+using Shanghai.Model;
 
 namespace Shanghai {
     public class EventGenerator {

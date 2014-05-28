@@ -3,13 +3,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-using Shanghai.Grid;
+using Shanghai.Model;
 
 namespace Shanghai {
     public class ShanghaiUtils {
         public enum PaintColour {RED=0, BLUE, YELLOW, GREEN, PURPLE, ORANGE, NONE};
 
-        public static bool IsEndPoint(PlayableCell cell) {
+        public static bool IsEndPoint(Cell cell) {
             return cell.Target != null;
         }
 
