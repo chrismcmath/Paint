@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 using Shanghai.Model;
+using Shanghai.ModelControllers;
 
 namespace Shanghai.ViewControllers {
     public class PlayGridController : MonoBehaviour {
@@ -10,14 +11,17 @@ namespace Shanghai.ViewControllers {
         public const string CELL_NAME_FORMAT = "y{0}_x{1}";
 
         private UITable _Table;
+        public GameObject PointsPrefab;
 
         public void Awake() {
             Messenger<Cell>.AddListener(Cell.EVENT_CELL_UPDATED, OnCellUpdated);
+            Messenger<int, Cell>.AddListener(ModelController.EVENT_POINTS_AWARDED, OnPointsAwarded);
             Messenger<List<List<Cell>>>.AddListener(Grid.EVENT_GRID_UPDATED, OnGridUpdated);
         }
 
         public void OnDestroy() {
             Messenger<Cell>.RemoveListener(Cell.EVENT_CELL_UPDATED, OnCellUpdated);
+            Messenger<int, Cell>.RemoveListener(ModelController.EVENT_POINTS_AWARDED, OnPointsAwarded);
             Messenger<List<List<Cell>>>.RemoveListener(Grid.EVENT_GRID_UPDATED, OnGridUpdated);
         }
 
@@ -28,6 +32,19 @@ namespace Shanghai.ViewControllers {
                 if (cellCtr != null) {
                     cellCtr.UpdateCell(cell);
                 }
+            }
+        }
+
+        private void OnPointsAwarded(int points, Cell cell) {
+            Transform cellTrans = transform.Find(string.Format(CELL_NAME_FORMAT, cell.Key.y, cell.Key.x));
+            if (cell != null && cellTrans != null) {
+                GameObject pointsGO = GameObject.Instantiate(PointsPrefab) as GameObject;
+                Debug.Log("pointsGO: " + pointsGO);
+                pointsGO.transform.parent = cellTrans;
+                pointsGO.transform.localPosition = Vector3.zero;
+                pointsGO.transform.localScale = Vector3.one;
+                UILabel pointsLabel = pointsGO.GetComponent<UILabel>();
+                pointsLabel.text = string.Format("+{0}", points);
             }
         }
 

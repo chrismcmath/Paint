@@ -37,7 +37,7 @@ namespace Shanghai {
             get { return _Targets; }
         }
 
-        private int _AvailableColours = 3;
+        private int _AvailableColours = 0;
         public int AvailableColours {
             get { return _AvailableColours; }
         }
@@ -95,6 +95,7 @@ namespace Shanghai {
             _Grid = new Grid();
             //_Grid.ResetAllCells(true);
 
+            _AvailableColours = ShanghaiConfig.Instance.InitialAvailableColours;
             _ActiveMissions = new List<ActiveMission>();
             Point = 0;
             _CanDraw = true;

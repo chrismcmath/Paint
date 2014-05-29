@@ -22,6 +22,14 @@ namespace Shanghai.Model {
             _Config = ShanghaiConfig.Instance;
         }
 
+        public bool Progress() {
+            CurrentCellID++;
+
+            if (CurrentCellID >= (Path.Count - 1)) {
+                return true;
+            }
+            return false;
+        }
         public bool Progress(float progress) {
             // As we're only removing the Active Mission after a number of seconds, need check here
             if (CurrentCellID >= Path.Count) {

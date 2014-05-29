@@ -9,6 +9,7 @@ using Shanghai.ViewControllers;
 namespace Shanghai {
     public class Shanghai : MonoBehaviour {
         public static readonly string EVENT_GAME_START = "EVENT_GAME_START";
+        public static readonly string EVENT_SKIP_GO = "EVENT_SKIP_GO";
 
         public enum GameState {START=0, PLAY, END_GAME};
 

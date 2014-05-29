@@ -12,8 +12,10 @@ namespace Shanghai.ViewControllers {
 
         public Material _ColourPathMaterial;
         public Material _TrackPathMaterial;
+        public Material _OutlinePathMaterial;
 
         private VectorLine _ColourPath = null;
+        private VectorLine _OutlinePath = null;
         private VectorLine _TrackPath = null;
 
         private ActiveMission _ActMission = null;
@@ -26,11 +28,16 @@ namespace Shanghai.ViewControllers {
 
             _TrackPathMaterial = new Material(material);
             _ColourPathMaterial = new Material(material);
+            _OutlinePathMaterial = new Material(material);
 
             _ColourPathPoints = ShanghaiUtils.GetScreenCoordsFromCellKeys(_ActMission.Path, _Model.CellPositions);
             _ColourPathMaterial.SetColor("_TintColor", ShanghaiUtils.GetColour(_ActMission.Source.PaintColour));
             _ColourPath = new VectorLine("Colour Path",  _ColourPathPoints.ToArray(), _ColourPathMaterial, 10.0f, LineType.Continuous, Joins.Weld);
             _ColourPath.Draw();
+
+            _OutlinePathMaterial.SetColor("_TintColor", Color.black);
+            _OutlinePath = new VectorLine("Colour Path",  _ColourPathPoints.ToArray(), _OutlinePathMaterial, 15.0f, LineType.Continuous, Joins.Weld);
+            _OutlinePath.Draw();
 
             Vector2[] linePoints = new Vector2[2];
             linePoints[0] = new Vector2(0,0);
@@ -51,6 +58,7 @@ namespace Shanghai.ViewControllers {
 
         public void CleanUp() {
             VectorLine.Destroy(ref _ColourPath);
+            VectorLine.Destroy(ref _OutlinePath);
             VectorLine.Destroy(ref _TrackPath);
         }
 

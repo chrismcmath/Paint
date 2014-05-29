@@ -16,7 +16,7 @@ namespace Shanghai.ViewControllers {
         public static readonly float FULL_ALPHA = 1.0f;
 
         public const float VIBRATE_START_THRESHOLD = 10.0f;
-        public const float MAX_OFFSET = 17.0f;
+        public const float MAX_OFFSET = 5.0f;
 
         public IntVect2 Key;
         private GameObject _CurrentObject = null;
@@ -25,6 +25,8 @@ namespace Shanghai.ViewControllers {
         public UISprite PipeSprite;
         public UISprite SourceSprite;
         public UISprite TargetSprite;
+        public UILabel TargetLabel;
+        public UIWidget TargetWidget;
         public UISprite ProgressSprite;
         public UISprite BackgroundSprite;
 
@@ -35,13 +37,24 @@ namespace Shanghai.ViewControllers {
             UpdateColour(TargetSprite, cell.Target);
 
             if (cell.Target != null) {
+                TargetWidget.alpha = 1.0f;
                 if (!cell.Target.Freeze) {
-                    // Linear graph (vibration, ttl) from (0,1) to (10,0)
-                    _Vibration = Mathf.Clamp(-(cell.Target.TTL / VIBRATE_START_THRESHOLD) + 1.0f, 0.0f, 1.0f);
+                    TargetLabel.text = cell.Target.Lives.ToString();
+                    if (cell.Target.Lives == 2) {
+                        _Vibration = 0.1f;
+                    } else if (cell.Target.Lives == 1) {
+                        _Vibration = 1f;
+                    } else {
+                        _Vibration = 0.0f;
+                        TargetSprite.transform.localPosition = Vector3.zero;
+                    }
                 } else {
+                    TargetLabel.text = "";
                     _Vibration = 0.0f;
                     TargetSprite.transform.localPosition = Vector3.zero;
                 }
+            } else {
+                TargetWidget.alpha = 0.0f;
             }
 
             if (cell.State == Cell.CellState.DEAD) {
@@ -79,7 +92,7 @@ namespace Shanghai.ViewControllers {
             if (_Vibration > 0.0f) {
                 float xOffset = GetRandomVibrationOffset();
                 float yOffset= GetRandomVibrationOffset();
-                TargetSprite.transform.localPosition = new Vector3(xOffset, yOffset);
+                TargetWidget.transform.localPosition = new Vector3(xOffset, yOffset);
             }
 
             //Debug.Log("UICamera hovered object: " + UICamera.hoveredObject);

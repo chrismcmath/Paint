@@ -92,7 +92,6 @@ namespace Shanghai.ModelControllers {
         }
 
         private bool CanDrawOnCell(Cell cell, Cell originCell) {
-            Debug.Log("cell: " + cell + " origin: " + originCell);
             return cell.IsFree() ||
                 (cell.Target != null &&
                  cell.Target.PaintColour == originCell.Source.PaintColour);

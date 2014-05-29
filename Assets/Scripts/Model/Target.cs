@@ -6,6 +6,8 @@ namespace Shanghai.Model {
     public class Target : ColouredCellAsset {
         public float TTL;
 
+        public int Lives = ShanghaiConfig.Instance.TargetLives;
+
         public bool IsActive = false;
         public bool Freeze = false;
 
@@ -13,6 +15,11 @@ namespace Shanghai.Model {
             CellKey = cellKey;
             PaintColour = colour;
             TTL = ttl;
+        }
+
+        public bool IsTTD() {
+            Lives -= 1;
+            return Lives == 0;
         }
 
         public bool IsTTD(float delta) {
