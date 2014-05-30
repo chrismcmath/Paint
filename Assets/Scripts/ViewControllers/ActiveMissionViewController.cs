@@ -31,7 +31,7 @@ namespace Shanghai.ViewControllers {
             _OutlinePathMaterial = new Material(material);
 
             _ColourPathPoints = ShanghaiUtils.GetScreenCoordsFromCellKeys(_ActMission.Path, _Model.CellPositions);
-            _ColourPathMaterial.SetColor("_TintColor", ShanghaiUtils.GetColour(_ActMission.Source.PaintColour));
+            _ColourPathMaterial.SetColor("_TintColor", ShanghaiUtils.GetColour(_ActMission.PaintColour));
             _ColourPath = new VectorLine("Colour Path",  _ColourPathPoints.ToArray(), _ColourPathMaterial, 10.0f, LineType.Continuous, Joins.Weld);
             _ColourPath.Draw();
 

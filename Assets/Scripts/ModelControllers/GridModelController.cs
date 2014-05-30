@@ -35,7 +35,7 @@ namespace Shanghai.ModelControllers {
                 }
             }
             if (!silent) {
-            Messenger<List<List<Cell>>>.Broadcast(EVENT_GRID_UPDATED, _Grid.Cells, MessengerMode.DONT_REQUIRE_LISTENER);
+                Messenger<List<List<Cell>>>.Broadcast(EVENT_GRID_UPDATED, _Grid.Cells, MessengerMode.DONT_REQUIRE_LISTENER);
             }
         }
 
@@ -54,10 +54,9 @@ namespace Shanghai.ModelControllers {
             Cell cell = GetCell(key);
             /* First point, can only be a valid source */ 
             if (path.Count == 0 &&
-                    cell.Source != null &&
-                    cell.Source.PaintColour != ShanghaiUtils.PaintColour.NONE) {
-                GameModel.Instance.PathColour = cell.Source.PaintColour;
-                cell.Source.Locked = true;
+                   cell.Target != null) {
+                GameModel.Instance.PathColour = cell.Target.PaintColour;
+                cell.Target.Freeze = true;
                 return true;
             } else if (CellIsConnected(key, path) &&
                     CanDrawOnCell(GetCell(key), GetCell(path[0]))) {
@@ -78,11 +77,6 @@ namespace Shanghai.ModelControllers {
             Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
         }
 
-        public void KillCell (Cell cell) {
-            cell.KillCell();
-            Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
-        }
-
         public void ResetCellsProgress(List<IntVect2> path) {
             foreach (IntVect2 cellKey in path) {
                 Cell cell = GetCell(cellKey);
@@ -94,7 +88,7 @@ namespace Shanghai.ModelControllers {
         private bool CanDrawOnCell(Cell cell, Cell originCell) {
             return cell.IsFree() ||
                 (cell.Target != null &&
-                 cell.Target.PaintColour == originCell.Source.PaintColour);
+                 cell.Target.PaintColour == originCell.Target.PaintColour);
         }
 
         private bool CellInPath(IntVect2 key, List<IntVect2> path) {
@@ -118,82 +112,5 @@ namespace Shanghai.ModelControllers {
             }
             return false;
         }
-
-        /*
-        private void UpdateCellPipeType(Cell cell, List<IntVect2> path) {
-        //TODO: Left is coming from chance card
-            if (path.Count < 1) {
-                cell.Pipe = Cell.PipeType.TOP;
-                return;
-            }
-            Cell prevCell = GetCell(path[path.Count - 1]);
-
-            if (prevCell.Key.x < cell.Key.x) {
-                cell.Pipe = Cell.PipeType.LEFT;
-            } else if (prevCell.Key.x > cell.Key.x) {
-                cell.Pipe = Cell.PipeType.RIGHT;
-            } else if (prevCell.Key.y < cell.Key.y) {
-                cell.Pipe = Cell.PipeType.TOP;
-            } else if (prevCell.Key.y > cell.Key.y) {
-                cell.Pipe = Cell.PipeType.BOTTOM;
-            }
-
-            UpdatePrevCell(prevCell, cell);
-        }
-
-        private void UpdatePrevCell(Cell prevCell, Cell cell) {
-            if (prevCell.Pipe == cell.Pipe) {
-                prevCell.Pipe = (prevCell.Pipe == Cell.PipeType.LEFT ||
-                        prevCell.Pipe == Cell.PipeType.RIGHT) ?  
-                    Cell.PipeType.HORI  : Cell.PipeType.VERT;
-            }
-            switch (prevCell.Pipe) {
-                case Cell.PipeType.LEFT:
-                    switch (cell.Pipe) {
-                        case Cell.PipeType.TOP:
-                            prevCell.Pipe = Cell.PipeType.SW;
-                            break;
-                        case Cell.PipeType.BOTTOM:
-                            prevCell.Pipe = Cell.PipeType.NW;
-                            break;
-                    }
-                    break;
-                case Cell.PipeType.RIGHT:
-                    switch (cell.Pipe) {
-                        case Cell.PipeType.TOP:
-                            prevCell.Pipe = Cell.PipeType.SE;
-                            break;
-                        case Cell.PipeType.BOTTOM:
-                            prevCell.Pipe = Cell.PipeType.NE;
-                            break;
-                    }
-                    break;
-                case Cell.PipeType.TOP:
-                    switch (cell.Pipe) {
-                        case Cell.PipeType.LEFT:
-                            prevCell.Pipe = Cell.PipeType.NE;
-                            break;
-                        case Cell.PipeType.RIGHT:
-                            prevCell.Pipe = Cell.PipeType.NW;
-                            break;
-                    }
-                    break;
-                case Cell.PipeType.BOTTOM:
-                    switch (cell.Pipe) {
-                        case Cell.PipeType.LEFT:
-                            prevCell.Pipe = Cell.PipeType.SE;
-                            break;
-                        case Cell.PipeType.RIGHT:
-                            prevCell.Pipe = Cell.PipeType.SW;
-                            break;
-                    }
-                    break;
-                case Cell.PipeType.NONE:
-                    Debug.Log("Prev cell cant be NONE");
-                    break;
-            }
-            Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, prevCell);
-        }
-        */
     }
 }

@@ -47,7 +47,7 @@ namespace Shanghai {
                 case GameState.START:
                     break;
                 case GameState.PLAY:
-                    ModelController.GameLoop();
+                    //ModelController.GameLoop();
                     break;
                 case GameState.END_GAME:
                     break;

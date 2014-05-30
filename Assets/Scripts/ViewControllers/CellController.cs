@@ -146,7 +146,6 @@ namespace Shanghai.ViewControllers {
         }
 
         public void OnClick() {
-            Debug.Log("clicked " + Key);
             Messenger<IntVect2>.Broadcast(EVENT_CELL_CLICKED, Key);
         }
 

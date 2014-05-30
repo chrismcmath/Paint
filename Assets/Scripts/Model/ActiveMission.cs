@@ -8,17 +8,16 @@ namespace Shanghai.Model {
         public static readonly string EVENT_PACKAGE_DELIVERED = "EVENT_PACKAGE_DELIVERED";
 
         public List<IntVect2> Path;
-        public Source Source;
-        public Target Target;
 
         public float CurrentCellProgress = 0.0f;
         public int CurrentCellID = 0;
+        public ShanghaiUtils.PaintColour PaintColour;
+
         private ShanghaiConfig _Config;
 
-        public ActiveMission(List<IntVect2> path, Source source, Target target) {
+        public ActiveMission(List<IntVect2> path, ShanghaiUtils.PaintColour colour) {
             Path = path;
-            Source = source;
-            Target = target;
+            PaintColour = colour;
             _Config = ShanghaiConfig.Instance;
         }
 

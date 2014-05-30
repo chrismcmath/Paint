@@ -94,5 +94,33 @@ namespace Shanghai {
             }
             return pathPoints;
         }
+
+        public static List<IntVect2> GetLegitimateSurroundingCells(IntVect2 center) {
+            List<IntVect2> surroundingCells = new List<IntVect2>();
+
+            TryAddCellOffset(new IntVect2(-1, 0), center, surroundingCells);
+            TryAddCellOffset(new IntVect2(1, 0), center, surroundingCells);
+            TryAddCellOffset(new IntVect2(0, -1), center, surroundingCells);
+            TryAddCellOffset(new IntVect2(0, 1), center, surroundingCells);
+
+            return surroundingCells;
+        }
+
+        private static void TryAddCellOffset(IntVect2 deviation, IntVect2 center, List<IntVect2> surroundingCells) {
+            IntVect2 newKey = new IntVect2(center.x + deviation.x, center.y + deviation.y);
+            if (newKey.x >= 0 && newKey.x < ShanghaiConfig.Instance.GridSize &&
+                    newKey.y >= 0 && newKey.y < ShanghaiConfig.Instance.GridSize) {
+                surroundingCells.Add(newKey);
+            }
+        }
+
+        public static bool PathContainsPoint(List<IntVect2> path, IntVect2 point) {
+            foreach (IntVect2 p in path) {
+                if (p == point) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

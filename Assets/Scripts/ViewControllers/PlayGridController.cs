@@ -39,7 +39,6 @@ namespace Shanghai.ViewControllers {
             Transform cellTrans = transform.Find(string.Format(CELL_NAME_FORMAT, cell.Key.y, cell.Key.x));
             if (cell != null && cellTrans != null) {
                 GameObject pointsGO = GameObject.Instantiate(PointsPrefab) as GameObject;
-                Debug.Log("pointsGO: " + pointsGO);
                 pointsGO.transform.parent = cellTrans;
                 pointsGO.transform.localPosition = Vector3.zero;
                 pointsGO.transform.localScale = Vector3.one;

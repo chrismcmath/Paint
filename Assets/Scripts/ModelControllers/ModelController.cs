@@ -15,6 +15,7 @@ namespace Shanghai.ModelControllers {
         private GameModel _Model;
         private GridModelController _GridModelController = null;
 
+        private IntVect2 _FirstCell = null;
         private IntVect2 _CurrentCell = null;
 
         private ShanghaiConfig _Config;
@@ -67,14 +68,17 @@ namespace Shanghai.ModelControllers {
         }
 
         private void OnCellDragged(IntVect2 cellKey) {
-            if (cellKey == _CurrentCell) return;
+            //NOTE: Ignore if we're still dragging on the same cell
+            //      or all subsequent drags from the dragged cell after the first
+            if (cellKey == _CurrentCell || cellKey == _FirstCell) return;
             _CurrentCell = cellKey;
+                Debug.Log("DRAG, first: " + _FirstCell + " current: " + _CurrentCell);
 
             if (_GridModelController.ValidateCellInput(cellKey, _Model.Path)){
                 _Model.Path.Add(cellKey);
                 FreezeTarget(cellKey);
-                if (ShanghaiUtils.IsEndPoint(_Model.Grid.GetCell(cellKey))) {
-                    _Model.CanDraw = false;
+                if (_Model.Path.Count == 1) {
+                    _FirstCell = cellKey;
                 }
             }
         }
@@ -94,6 +98,9 @@ namespace Shanghai.ModelControllers {
             SetPath();
             _Model.ResetPath();
 
+            _CurrentCell = null;
+            _FirstCell = null;
+
             NextTurn();
         }
 
@@ -105,17 +112,17 @@ namespace Shanghai.ModelControllers {
             List<IntVect2> path = PrunePath(_Model.Path);
             if (path.Count < 2) {
                 Cell firstCell = _GridModelController.GetCell(_Model.Path[0]);
-                _GridModelController.KillCell(firstCell);
+                KillCell(firstCell);
                 return;
             }
 
             Cell startCell = _GridModelController.GetCell(path[0]);
             Cell endCell = _GridModelController.GetCell(path[path.Count-1]);
 
-            if (startCell.Source.PaintColour != endCell.Target.PaintColour) {
+            if (startCell.Target.PaintColour != endCell.Target.PaintColour) {
                 Debug.LogError("This can't be happening!!!");
             } else {
-                _Model.AddActiveMission(new ActiveMission(path, startCell.Source, endCell.Target));
+                _Model.AddActiveMission(new ActiveMission(path, startCell.Target.PaintColour));
             }
         }
 
@@ -150,7 +157,7 @@ namespace Shanghai.ModelControllers {
                 if (!target.Freeze && target.IsTTD()) {
                     garbage.Add(target);
 
-                    cell.KillCell();
+                    ExplodeCell(cell);
                 }
                 Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
             }
@@ -190,28 +197,8 @@ namespace Shanghai.ModelControllers {
                         if (cell.Target != null) {
                             cumulativePoints *= 2;
                         }
-                        int cellPoints = cell.Colour == actMiss.Source.PaintColour ? cumulativePoints * 2 : cumulativePoints;
-                        StartCoroutine(PaintCell(interval, cell, actMiss.Source.PaintColour, cellPoints));
-                        interval += 0.1f;
-                    }
-                    StartCoroutine(RemoveActiveMission(interval, actMiss));
-                }
-            }
-        }
-
-        public void UpdateActiveMissions(float delta) {
-            foreach (ActiveMission actMiss in _Model.ActiveMissions) {
-                if (actMiss.Progress(delta * _Config.CellFillPerSecond)) {
-                    actMiss.Path.Reverse();
-                    float interval = 0.1f;
-                    int cumulativePoints = 1;
-                    foreach (IntVect2 cellKey in actMiss.Path) {
-                        Cell cell = _GridModelController.GetCell(cellKey);
-                        if (cell.Target != null) {
-                            cumulativePoints *= 2;
-                        }
-                        int cellPoints = cell.Colour == actMiss.Source.PaintColour ? cumulativePoints * 2 : cumulativePoints;
-                        StartCoroutine(PaintCell(interval, cell, actMiss.Source.PaintColour, cellPoints));
+                        int cellPoints = cell.Colour == actMiss.PaintColour ? cumulativePoints * 2 : cumulativePoints;
+                        StartCoroutine(PaintCell(interval, cell, actMiss.PaintColour, cellPoints));
                         interval += 0.1f;
                     }
                     StartCoroutine(RemoveActiveMission(interval, actMiss));
@@ -236,19 +223,9 @@ namespace Shanghai.ModelControllers {
         }
 
         private void RegenerateSurroundingCells(Cell cell) {
-            Debug.Log("RegenerateSurroundingCells");
-            IntVect2 cellKey = cell.Key;
-            AddCellByDeviation(cell.Key, new IntVect2(-1, 0));
-            AddCellByDeviation(cell.Key, new IntVect2(1, 0));
-            AddCellByDeviation(cell.Key, new IntVect2(0, -1));
-            AddCellByDeviation(cell.Key, new IntVect2(0, 1));
-        }
-
-        private void AddCellByDeviation(IntVect2 key, IntVect2 deviation) {
-            IntVect2 newKey = new IntVect2(key.x + deviation.x, key.y + deviation.y);
-            if (newKey.x >= 0 && newKey.x < ShanghaiConfig.Instance.GridSize &&
-                    newKey.y >= 0 && newKey.y < ShanghaiConfig.Instance.GridSize) {
-                Cell adjacentCell = _GridModelController.GetCell(newKey);
+            List<IntVect2> surroundingCells = ShanghaiUtils.GetLegitimateSurroundingCells(cell.Key);
+            foreach (IntVect2 cellKey in surroundingCells) {
+                Cell adjacentCell = _GridModelController.GetCell(cellKey);
                 if (adjacentCell.State == Cell.CellState.DEAD) {
                     _GridModelController.ResetCell(adjacentCell);
                 }
@@ -262,49 +239,12 @@ namespace Shanghai.ModelControllers {
             TickTargets();
 
             /* spawn */
-            _Generator.GenerateSource();
-            _Generator.GenerateTarget();
-            _Generator.GenerateTarget();
-
-            _Model.ChangeColour();
-        }
-
-        public void GameLoop() {
-        }
-
-        public void RealTimeGameLoop() {
-            _CurrentTime += Time.deltaTime;
-            _ColourInterval -= Time.deltaTime;
-            _SourceInterval -= Time.deltaTime;
-            _TargetInterval -= Time.deltaTime;
-            DebugLabel.text = string.Format("Clock:{0:00}\nColour:{1:00}\nSource:{2:00}\nTarget:{3:00}", _CurrentTime, _ColourInterval, _SourceInterval, _TargetInterval);
-
-            /*
-            if (_ColourInterval <= 0.0f) {
-                _ColourInterval = _Config.ColourInterval;
-                UpdateSources();
-                _Model.ChangeColour();
-            }
-            if (_SourceInterval <= 0.0f) {
-                _SourceInterval = _Config.SourceInterval;
-                _Generator.GenerateSource();
-            }
-            if (_TargetInterval <= 0.0f) {
-                _TargetInterval = _Config.TargetInterval;
+            //_Generator.GenerateSource();
+            for (int i = 0; i < ShanghaiConfig.Instance.TargetsPerTurn; i++) {
                 _Generator.GenerateTarget();
             }
-            */
 
-            UpdateActiveMissions(Time.deltaTime);
-
-            TickTargets(Time.deltaTime);
-            /*
-            ReplinishTargets(Time.deltaTime);
-            DrainClients(Time.deltaTime);
-            TickMissions(Time.deltaTime);
-
-            CheckForEndGame();
-            */
+            _Model.ChangeColour();
         }
 
         private void UpdateSources() {
@@ -319,6 +259,44 @@ namespace Shanghai.ModelControllers {
 
         private void OnResetColourInterval() {
             _ColourInterval = 0.0f;
+        }
+
+        public void ExplodeCell(Cell cell) {
+            List<IntVect2> surroundingCells = ShanghaiUtils.GetLegitimateSurroundingCells(cell.Key);
+            foreach (IntVect2 cellKey in surroundingCells) {
+                StartCoroutine(KillCellAfterWait(_GridModelController.GetCell(cellKey)));
+            }
+            KillCell(cell);
+        }
+
+        private IEnumerator KillCellAfterWait(Cell cell) {
+            yield return new WaitForSeconds(0.1f);
+            KillCell(cell);
+        }
+
+        public void KillCell(Cell cell) {
+            // Removing mission will reset the squares, so kill after
+            CheckActiveMissionDestroyed(cell);
+            cell.KillCell();
+
+            Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
+        }
+
+        private void CheckActiveMissionDestroyed(Cell cell) {
+            List<ActiveMission> toDestroy = new List<ActiveMission>();
+            foreach (ActiveMission actMiss in _Model.ActiveMissions) {
+                //Debug.Log("check any active missions destroyed, key: " + cell.Key);
+                foreach (IntVect2 point in actMiss.Path) {
+                    //Debug.Log("point: " + point);
+                }
+                if (ShanghaiUtils.PathContainsPoint(actMiss.Path, cell.Key)) {
+                    toDestroy.Add(actMiss);
+                }
+            }
+
+            foreach (ActiveMission actMiss in toDestroy) {
+                _Model.RemoveActiveMission(actMiss);
+            }
         }
     }
 }
