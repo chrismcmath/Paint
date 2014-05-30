@@ -74,6 +74,10 @@ namespace Shanghai.Model {
             return !HasPath && State == CellState.EMPTY;
         }
 
+        public bool IsDead() {
+            return State == CellState.DEAD;
+        }
+
         public bool HasMission() {
             return Target != null || Source != null;
         }

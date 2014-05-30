@@ -188,7 +188,7 @@ namespace Shanghai.ModelControllers {
 
         public void UpdateActiveMissions() {
             foreach (ActiveMission actMiss in _Model.ActiveMissions) {
-                if (actMiss.Progress()) {
+                if (true) {
                     actMiss.Path.Reverse();
                     float interval = 0.05f;
                     int cumulativePoints = 1;
@@ -235,8 +235,8 @@ namespace Shanghai.ModelControllers {
         // Get two new targets and one new source each round
         // Game over when grid is full
         public void NextTurn() {
-            UpdateActiveMissions();
             TickTargets();
+            UpdateActiveMissions();
 
             /* spawn */
             //_Generator.GenerateSource();
@@ -262,11 +262,29 @@ namespace Shanghai.ModelControllers {
         }
 
         public void ExplodeCell(Cell cell) {
+            Debug.Log("explode cell " + cell.Key);
+            /* Fail case: dead already or firewall! */
+            if (cell.IsDead()) {
+                Debug.Log("cell is dead");
+                return;
+            }
+
+            foreach (ActiveMission actMiss in _Model.ActiveMissions) {
+                if (ShanghaiUtils.PathContainsPoint(actMiss.Path, cell.Key)) {
+                    Debug.Log("cell is in mission");
+                    return;
+                }
+            }
+
+            Debug.Log("kill cell");
+            KillCell(cell);
+
             List<IntVect2> surroundingCells = ShanghaiUtils.GetLegitimateSurroundingCells(cell.Key);
             foreach (IntVect2 cellKey in surroundingCells) {
-                StartCoroutine(KillCellAfterWait(_GridModelController.GetCell(cellKey)));
+                Debug.Log("try neighbour " + cellKey);
+                ExplodeCell(_GridModelController.GetCell(cellKey));
+                //StartCoroutine(KillCellAfterWait(_GridModelController.GetCell(cellKey)));
             }
-            KillCell(cell);
         }
 
         private IEnumerator KillCellAfterWait(Cell cell) {
@@ -276,7 +294,7 @@ namespace Shanghai.ModelControllers {
 
         public void KillCell(Cell cell) {
             // Removing mission will reset the squares, so kill after
-            CheckActiveMissionDestroyed(cell);
+            //CheckActiveMissionDestroyed(cell);
             cell.KillCell();
 
             Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
