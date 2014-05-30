@@ -106,6 +106,23 @@ namespace Shanghai {
             return surroundingCells;
         }
 
+        public static List<IntVect2> GetLegitimateSurroundingCells8(IntVect2 center) {
+            List<IntVect2> surroundingCells = new List<IntVect2>();
+
+            TryAddCellOffset(new IntVect2(-1, -1), center, surroundingCells);
+            TryAddCellOffset(new IntVect2(-1, 0), center, surroundingCells);
+            TryAddCellOffset(new IntVect2(-1, 1), center, surroundingCells);
+
+            TryAddCellOffset(new IntVect2(1, -1), center, surroundingCells);
+            TryAddCellOffset(new IntVect2(1, 0), center, surroundingCells);
+            TryAddCellOffset(new IntVect2(1, 1), center, surroundingCells);
+
+            TryAddCellOffset(new IntVect2(0, -1), center, surroundingCells);
+            TryAddCellOffset(new IntVect2(0, 1), center, surroundingCells);
+
+            return surroundingCells;
+        }
+
         private static void TryAddCellOffset(IntVect2 deviation, IntVect2 center, List<IntVect2> surroundingCells) {
             IntVect2 newKey = new IntVect2(center.x + deviation.x, center.y + deviation.y);
             if (newKey.x >= 0 && newKey.x < ShanghaiConfig.Instance.GridSize &&

@@ -11,7 +11,7 @@ namespace Shanghai.Model {
 
         public ShanghaiUtils.PaintColour PaintColour;
         public int Points = 0;
-        public int PointsModifier = 0;
+        public int PointsModifier = 1;
 
         public IntVect2 CurrentCell {
             get { return Path[0]; }
