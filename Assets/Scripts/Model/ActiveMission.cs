@@ -9,9 +9,13 @@ namespace Shanghai.Model {
 
         public List<IntVect2> Path;
 
-        public float CurrentCellProgress = 0.0f;
-        public int CurrentCellID = 0;
         public ShanghaiUtils.PaintColour PaintColour;
+        public int Points = 0;
+        public int PointsModifier = 0;
+
+        public IntVect2 CurrentCell {
+            get { return Path[0]; }
+        }
 
         private ShanghaiConfig _Config;
 
@@ -22,29 +26,12 @@ namespace Shanghai.Model {
         }
 
         public bool Progress() {
-            CurrentCellID++;
+            Debug.Log("path was " + Path.Count);
+            Path.Remove(Path[0]);
+            Debug.Log("path now " + Path.Count);
 
-            if (CurrentCellID >= (Path.Count - 1)) {
+            if (Path.Count <= 1) {
                 return true;
-            }
-            return false;
-        }
-        public bool Progress(float progress) {
-            // As we're only removing the Active Mission after a number of seconds, need check here
-            if (CurrentCellID >= Path.Count) {
-                return false;
-            }
-
-            CurrentCellProgress += progress;
-            Messenger<IntVect2, float>.Broadcast(EVENT_CELL_PROGRESSED, Path[CurrentCellID], CurrentCellProgress);
-
-            if (CurrentCellProgress >= 1.0f) {
-                CurrentCellProgress = 0.0f;
-                CurrentCellID++;
-
-                if (CurrentCellID >= (Path.Count - 1)) {
-                    return true;
-                }
             }
             return false;
         }

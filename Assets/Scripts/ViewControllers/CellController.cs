@@ -30,8 +30,11 @@ namespace Shanghai.ViewControllers {
         public UISprite ProgressSprite;
         public UISprite BackgroundSprite;
 
+        public UILabel ActMissionNodeLabel;
+        public UIWidget ActMissionNodeWidget;
+
         public void UpdateCell(Cell cell) {
-            UpdateSprite(PipeSprite, PIPE_PREFIX, GetPipeString(cell.Pipe));
+            //UpdateSprite(PipeSprite, PIPE_PREFIX, GetPipeString(cell.Pipe));
             //Debug.Log("source: " + cell.Source + " target: " + cell.Target);
             UpdateColour(SourceSprite, cell.Source);
             UpdateColour(TargetSprite, cell.Target);
@@ -67,6 +70,13 @@ namespace Shanghai.ViewControllers {
                 }
             }
 
+            if (cell.State == Cell.CellState.ACT_MISSION_NODE) {
+                ActMissionNodeWidget.alpha = 1;
+                ActMissionNodeLabel.text = string.Format("{0}", cell.Points * cell.PointsModifier);
+            } else {
+                ActMissionNodeWidget.alpha = 0;
+            }
+
             ProgressSprite.fillAmount = cell.Progress;
         }
 
@@ -94,55 +104,10 @@ namespace Shanghai.ViewControllers {
                 float yOffset= GetRandomVibrationOffset();
                 TargetWidget.transform.localPosition = new Vector3(xOffset, yOffset);
             }
-
-            //Debug.Log("UICamera hovered object: " + UICamera.hoveredObject);
-            //Debug.Log("isDragging: " + UICamera.isDragging);
         }
 
         private float GetRandomVibrationOffset() {
             return _Vibration * (Random.Range(0.0f, MAX_OFFSET*2) - MAX_OFFSET);
-        }
-
-        private string GetPipeString(Cell.PipeType type) {
-            switch (type) {
-                case Cell.PipeType.NONE:
-                    return "";
-                    break;
-                case Cell.PipeType.HORI:
-                    return "horizontal";
-                    break;
-                case Cell.PipeType.VERT:
-                    return "vertical";
-                    break;
-                case Cell.PipeType.NE:
-                    return "northeast";
-                    break;
-                case Cell.PipeType.NW:
-                    return "northwest";
-                    break;
-                case Cell.PipeType.SE:
-                    return "southeast";
-                    break;
-                case Cell.PipeType.SW:
-                    return "southwest";
-                    break;
-                case Cell.PipeType.LEFT:
-                    return "endwest";
-                    break;
-                case Cell.PipeType.RIGHT:
-                    return "endeast";
-                    break;
-                case Cell.PipeType.TOP:
-                    return "endnorth";
-                    break;
-                case Cell.PipeType.BOTTOM:
-                    return "endsouth";
-                    break;
-                default:
-                    Debug.Log("Could not GetPipeString " + type);
-                    return "";
-                    break;
-            }
         }
 
         public void OnClick() {

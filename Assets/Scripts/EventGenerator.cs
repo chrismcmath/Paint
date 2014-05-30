@@ -26,6 +26,7 @@ namespace Shanghai {
             }
 
             ShanghaiUtils.PaintColour targetColour = ShanghaiUtils.GetRandomColour(_Model.AvailableColours); 
+            Debug.Log("target colour: " + targetColour);
             float TTL = _Config.TargetWaitTime;
             Target target = new Target(cellKey, targetColour, TTL);
             Messenger<Target>.Broadcast(EVENT_TARGET_CREATED, target);

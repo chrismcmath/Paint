@@ -11,8 +11,11 @@ namespace Shanghai.Model {
         public bool Selected = false;
         public bool HasPath = false;
 
+        public int Points = 0;
+        public int PointsModifier = 0;
+
         public enum PipeType {NONE=0, HORI, VERT, NE, NW, SE, SW, LEFT, RIGHT, TOP, BOTTOM};
-        public enum CellState {EMPTY=0, SOURCE, TARGET, DEAD};
+        public enum CellState {EMPTY=0, SOURCE, TARGET, ACT_MISSION_NODE, DEAD};
 
         private PipeType _Pipe = PipeType.NONE;
         public PipeType Pipe {
@@ -74,8 +77,18 @@ namespace Shanghai.Model {
             return !HasPath && State == CellState.EMPTY;
         }
 
+        public bool IsDead() {
+            return State == CellState.DEAD;
+        }
+
         public bool HasMission() {
             return Target != null || Source != null;
+        }
+
+        public void SetNodePoints(int points, int modifier) {
+            State = CellState.ACT_MISSION_NODE;
+            Points = points;
+            PointsModifier = modifier;
         }
     }
 }

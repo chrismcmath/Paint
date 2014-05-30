@@ -187,10 +187,30 @@ namespace Shanghai.ModelControllers {
         }
 
         public void UpdateActiveMissions() {
+            List<ActiveMission> garbage = new List<ActiveMission>();
+
             foreach (ActiveMission actMiss in _Model.ActiveMissions) {
+                PaintCell(actMiss.Path[0], actMiss.PaintColour);
                 if (actMiss.Progress()) {
+                    garbage.Add(actMiss);
+                    PaintCell(actMiss.Path[0], actMiss.PaintColour);
+                    _Model.Point += actMiss.Points * actMiss.PointsModifier;
+
+                    /*Disable bombs*/
+                    List<IntVect2> surroundingCells = ShanghaiUtils.GetLegitimateSurroundingCells(actMiss.Path[0]);
+                    foreach (IntVect2 cellKey in surroundingCells) {
+                        Cell adjCell = _GridModelController.GetCell(cellKey);
+                        if (adjCell.IsDead()) {
+                            adjCell.Reset();
+                            Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, adjCell);
+                        } else if (adjCell.Target != null && !adjCell.Target.Freeze) {
+                            adjCell.Reset();
+                            Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, adjCell);
+                        }
+                    }
+
+                    /*
                     actMiss.Path.Reverse();
-                    float interval = 0.05f;
                     int cumulativePoints = 1;
                     foreach (IntVect2 cellKey in actMiss.Path) {
                         Cell cell = _GridModelController.GetCell(cellKey);
@@ -202,8 +222,31 @@ namespace Shanghai.ModelControllers {
                         interval += 0.1f;
                     }
                     StartCoroutine(RemoveActiveMission(interval, actMiss));
+                    */
+                } else {
+                    //accumulate
+                    if (_GridModelController.GetCell(actMiss.CurrentCell).Colour == actMiss.PaintColour) {
+                        actMiss.Points += 1;
+                    } else if (_GridModelController.GetCell(actMiss.CurrentCell).Target != null) {
+                        actMiss.PointsModifier += 1;
+                    }
+                    Cell cell = _GridModelController.GetCell(actMiss.Path[0]);
+                    cell.SetNodePoints(actMiss.Points, actMiss.PointsModifier);
+                    Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
                 }
             }
+
+            /* Garbage collection */
+            foreach (ActiveMission actMiss in garbage) {
+                _Model.ActiveMissions.Remove(actMiss);
+            }
+        }
+
+        private void PaintCell(IntVect2 cellKey, ShanghaiUtils.PaintColour colour) {
+            Cell cell = _GridModelController.GetCell(cellKey);
+            cell.Reset();
+            cell.Colour = colour;
+            Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
         }
 
         private IEnumerator PaintCell(float waitTime, Cell cell, ShanghaiUtils.PaintColour colour, int points) {

@@ -25,8 +25,8 @@ namespace Shanghai.ViewControllers {
             Vector2[] linePoints = new Vector2[2];
             linePoints[0] = new Vector2(0,0);
             linePoints[1] = new Vector2(Screen.width, Screen.height);
-            _ColourPath = new VectorLine("active path",  linePoints, _ColourPathMaterial, 3.0f, LineType.Continuous, Joins.Weld);
-            _OutlinePath = new VectorLine("outline path",  linePoints, _OutlinePathMaterial, 5.0f, LineType.Continuous, Joins.Weld);
+            _ColourPath = new VectorLine("active path",  linePoints, _ColourPathMaterial, 5.0f, LineType.Continuous, Joins.Weld);
+            _OutlinePath = new VectorLine("outline path",  linePoints, _OutlinePathMaterial, 10.0f, LineType.Continuous, Joins.Weld);
             _Model = GameModel.Instance;
         }
 

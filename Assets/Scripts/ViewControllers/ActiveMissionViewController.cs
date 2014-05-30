@@ -11,12 +11,10 @@ namespace Shanghai.ViewControllers {
         private GameModel _Model;
 
         public Material _ColourPathMaterial;
-        public Material _TrackPathMaterial;
         public Material _OutlinePathMaterial;
 
         private VectorLine _ColourPath = null;
         private VectorLine _OutlinePath = null;
-        private VectorLine _TrackPath = null;
 
         private ActiveMission _ActMission = null;
 
@@ -26,43 +24,45 @@ namespace Shanghai.ViewControllers {
             _Model = GameModel.Instance;
             _ActMission = actMission;
 
-            _TrackPathMaterial = new Material(material);
             _ColourPathMaterial = new Material(material);
             _OutlinePathMaterial = new Material(material);
 
             _ColourPathPoints = ShanghaiUtils.GetScreenCoordsFromCellKeys(_ActMission.Path, _Model.CellPositions);
             _ColourPathMaterial.SetColor("_TintColor", ShanghaiUtils.GetColour(_ActMission.PaintColour));
-            _ColourPath = new VectorLine("Colour Path",  _ColourPathPoints.ToArray(), _ColourPathMaterial, 10.0f, LineType.Continuous, Joins.Weld);
+            _ColourPath = new VectorLine("Colour Path",  _ColourPathPoints.ToArray(), _ColourPathMaterial, 5.0f, LineType.Continuous, Joins.Weld);
             _ColourPath.Draw();
 
             _OutlinePathMaterial.SetColor("_TintColor", Color.black);
-            _OutlinePath = new VectorLine("Colour Path",  _ColourPathPoints.ToArray(), _OutlinePathMaterial, 15.0f, LineType.Continuous, Joins.Weld);
+            _OutlinePath = new VectorLine("Colour Path",  _ColourPathPoints.ToArray(), _OutlinePathMaterial, 10.0f, LineType.Continuous, Joins.Weld);
             _OutlinePath.Draw();
-
-            Vector2[] linePoints = new Vector2[2];
-            linePoints[0] = new Vector2(0,0);
-            linePoints[1] = new Vector2(Screen.width, Screen.height);
-            _TrackPathMaterial.SetColor("_TintColor", Color.black);
-            _TrackPath = new VectorLine("Active Path",  _ColourPathPoints.ToArray(), _TrackPathMaterial, 5.0f, LineType.Continuous, Joins.Weld);
-            _TrackPath.Draw();
         }
 
         // manually updated by ActiveMissionsViewController
         public void Update() {
             // Stop drawing once the ID reaches the last point
-            if (_ActMission.CurrentCellID < _ColourPathPoints.Count -1) {
-                _TrackPath.Resize(GetTrackPoints());
+            if (_ActMission.Path.Count >= 2) {
+                _OutlinePath.active = true;
+                _ColourPath.active = true;
+
+                _OutlinePath.Resize(ShanghaiUtils.GetScreenCoordsFromCellKeys(_ActMission.Path, _Model.CellPositions).ToArray());
+                _ColourPath.Resize(ShanghaiUtils.GetScreenCoordsFromCellKeys(_ActMission.Path, _Model.CellPositions).ToArray());
+
+            } else {
+                _OutlinePath.active = false;
+                _ColourPath.active = false;
             }
-            _TrackPath.Draw();
+
+            _ColourPath.Draw();
+            _OutlinePath.Draw();
         }
 
         public void CleanUp() {
             VectorLine.Destroy(ref _ColourPath);
             VectorLine.Destroy(ref _OutlinePath);
-            VectorLine.Destroy(ref _TrackPath);
         }
 
         //Builds path backwards
+        /*
         private Vector2[] GetTrackPoints() {
             List<Vector2> reversePath = new List<Vector2>(_ColourPathPoints);
             reversePath.Reverse();
@@ -80,6 +80,7 @@ namespace Shanghai.ViewControllers {
             trackPoints.Add(lastTrackPoint);
             return trackPoints.ToArray();
         }
+        */
     }
 }
 
