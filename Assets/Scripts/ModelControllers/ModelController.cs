@@ -8,7 +8,6 @@ using Shanghai.ViewControllers;
 
 namespace Shanghai.ModelControllers {
     public class ModelController : MonoBehaviour {
-        public static readonly string EVENT_RESET_COLOUR_INTERVAL = "EVENT_RESET_COLOUR_INTERVAL";
         public static readonly string EVENT_ACTIVE_MISSION_FINISHED = "EVENT_ACTIVE_MISSION_FINISHED";
         public static readonly string EVENT_POINTS_AWARDED = "EVENT_POINTS_AWARDED";
 
@@ -24,7 +23,6 @@ namespace Shanghai.ModelControllers {
         public UILabel DebugLabel;
 
         private float _CurrentTime;
-        private float _ColourInterval = 0.0f;
         private float _SourceInterval = 0.0f;
         private float _TargetInterval = 0.0f;
 
@@ -35,7 +33,6 @@ namespace Shanghai.ModelControllers {
             Messenger<IntVect2>.AddListener(CellController.EVENT_CELL_DRAGGED, OnCellDragged);
             Messenger<IntVect2>.AddListener(CellController.EVENT_CELL_CLICKED, OnCellClicked);
             Messenger.AddListener(CellController.EVENT_CELL_DRAG_END, OnCellDragEnd);
-            Messenger.AddListener(ModelController.EVENT_RESET_COLOUR_INTERVAL, OnResetColourInterval);
             Messenger.AddListener(Shanghai.EVENT_SKIP_GO, OnSkipGo);
         }
 
@@ -51,7 +48,6 @@ namespace Shanghai.ModelControllers {
             Messenger<IntVect2>.RemoveListener(CellController.EVENT_CELL_DRAGGED, OnCellDragged);
             Messenger<IntVect2>.RemoveListener(CellController.EVENT_CELL_CLICKED, OnCellClicked);
             Messenger.RemoveListener(CellController.EVENT_CELL_DRAG_END, OnCellDragEnd);
-            Messenger.RemoveListener(ModelController.EVENT_RESET_COLOUR_INTERVAL, OnResetColourInterval);
             Messenger.RemoveListener(Shanghai.EVENT_SKIP_GO, OnSkipGo);
         }
 
@@ -63,7 +59,6 @@ namespace Shanghai.ModelControllers {
 
                 cell.Source.PaintColour = _Model.PaintColour;
                 Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
-                Messenger.Broadcast(EVENT_RESET_COLOUR_INTERVAL);
             }
         }
 
@@ -308,10 +303,6 @@ namespace Shanghai.ModelControllers {
                     Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
                 }
             }
-        }
-
-        private void OnResetColourInterval() {
-            _ColourInterval = 0.0f;
         }
 
         public void ExplodeCell(Cell cell) {

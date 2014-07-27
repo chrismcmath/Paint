@@ -54,7 +54,7 @@ namespace Shanghai {
             }   
         }
 
-        public void OnGameStart() {
+        private void OnGameStart() {
             _Model.Reset();
             CreateAssets();
             _State = GameState.PLAY;
