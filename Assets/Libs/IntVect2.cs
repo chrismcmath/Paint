@@ -13,6 +13,14 @@ public class IntVect2 {
         return "(" + x + ", " + y + ")";
     }
 
+    public override bool Equals(object obj) {
+        IntVect2 cls = obj as IntVect2;
+        if (cls == null) {
+            return false;
+        }
+        return  (cls == obj);
+    }
+
     public static bool operator ==(IntVect2 a, IntVect2 b){
         return Compare(a,b);
     }

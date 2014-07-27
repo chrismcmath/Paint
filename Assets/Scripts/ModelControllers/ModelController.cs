@@ -52,24 +52,18 @@ namespace Shanghai.ModelControllers {
         }
 
         private void OnCellClicked(IntVect2 cellKey) {
-            Cell cell = _Model.Grid.GetCell(cellKey);
-            if (cell != null &&
-                cell.Source != null &&
-                cell.Source.PaintColour == ShanghaiUtils.PaintColour.NONE) {
-
-                cell.Source.PaintColour = _Model.PaintColour;
-                Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
-            }
+            //NOTE: Looks like this isn't used at all, trying without it
         }
 
         private void OnCellDragged(IntVect2 cellKey) {
             //NOTE: Ignore if we're still dragging on the same cell
             //      or all subsequent drags from the dragged cell after the first
             if (cellKey == _CurrentCell || cellKey == _FirstCell) return;
-            _CurrentCell = cellKey;
-                Debug.Log("DRAG, first: " + _FirstCell + " current: " + _CurrentCell);
 
-            if (_GridModelController.ValidateCellInput(cellKey, _Model.Path)){
+            _CurrentCell = cellKey;
+            //Debug.Log("DRAG, first: " + _FirstCell + " current: " + _CurrentCell);
+
+            if (_GridModelController.ValidateCellInput(cellKey, _Model.Path)) {
                 _Model.Path.Add(cellKey);
                 FreezeTarget(cellKey);
                 if (_Model.Path.Count == 1) {
@@ -121,6 +115,10 @@ namespace Shanghai.ModelControllers {
             }
         }
 
+        /* Removes any unconnected path after the last target 
+           (i.e. snaps to the last connected target)
+        */
+
         private List<IntVect2> PrunePath(List<IntVect2> originalPath) {
             List<IntVect2> prunedPath = new List<IntVect2>();
             
@@ -163,24 +161,6 @@ namespace Shanghai.ModelControllers {
             }
         }
 
-        public void TickTargets (float delta) {
-            List<Target> garbage = new List<Target>();
-            foreach (Target target in _Model.Targets) {
-                Cell cell = _Model.Grid.GetCell(target.CellKey);
-                if (!target.Freeze && target.IsTTD(delta)) {
-                    garbage.Add(target);
-
-                    cell.KillCell();
-                }
-                Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
-            }
-
-            /* Garbage collection */
-            foreach (Target target in garbage) {
-                _Model.Targets.Remove(target);
-            }
-        }
-
         public void UpdateActiveMissions() {
             List<ActiveMission> garbage = new List<ActiveMission>();
 
@@ -209,20 +189,6 @@ namespace Shanghai.ModelControllers {
                         }
                     }
 
-                    /*
-                    actMiss.Path.Reverse();
-                    int cumulativePoints = 1;
-                    foreach (IntVect2 cellKey in actMiss.Path) {
-                        Cell cell = _GridModelController.GetCell(cellKey);
-                        if (cell.Target != null) {
-                            cumulativePoints *= 2;
-                        }
-                        int cellPoints = cell.Colour == actMiss.PaintColour ? cumulativePoints * 2 : cumulativePoints;
-                        StartCoroutine(PaintCell(interval, cell, actMiss.PaintColour, cellPoints));
-                        interval += 0.1f;
-                    }
-                    StartCoroutine(RemoveActiveMission(interval, actMiss));
-                    */
                 } else {
                     //accumulate
                     actMiss.Points += 1;
