@@ -161,7 +161,7 @@ namespace Shanghai.ModelControllers {
             }
         }
 
-        public void UpdateActiveMissions() {
+        public void UpdateActiveMissions(CellChange[,] changes) {
             List<ActiveMission> garbage = new List<ActiveMission>();
 
             foreach (ActiveMission actMiss in _Model.ActiveMissions) {
@@ -171,7 +171,7 @@ namespace Shanghai.ModelControllers {
                     PaintCell(actMiss.Path[0], actMiss.PaintColour);
                     _Model.Point += actMiss.Points * actMiss.PointsModifier;
 
-                    RegenerateSurroundingCells(actMiss.Path[0]);
+                    RegenerateSurroundingCells(actMiss.Path[0], changes);
                     /*Disable bombs*/
 
                     List<IntVect2> surroundingCells = ShanghaiUtils.GetLegitimateSurroundingCells(actMiss.Path[0]);
@@ -236,11 +236,13 @@ namespace Shanghai.ModelControllers {
             RegenerateSurroundingCells(_GridModelController.GetCell(cellKey));
         }
 
-        private void RegenerateSurroundingCells(Cell cell) {
+        private void RegenerateSurroundingCells(Cell cell, CellChange[,] changes) {
             List<IntVect2> surroundingCells = ShanghaiUtils.GetLegitimateSurroundingCells8(cell.Key);
             foreach (IntVect2 cellKey in surroundingCells) {
                 Cell adjacentCell = _GridModelController.GetCell(cellKey);
                 if (adjacentCell.State == Cell.CellState.DEAD) {
+                    changes[cellKey.x, cellKey.y] = "r";
+
                     _GridModelController.ResetCell(adjacentCell);
                 }
             }
@@ -248,8 +250,13 @@ namespace Shanghai.ModelControllers {
 
         // Get two new targets and one new source each round
         // Game over when grid is full
+        public enum CellChange {NONE=0,BOMB,COLLATERAL,RESTORED,PROTECTED};
         public void NextTurn() {
-            UpdateActiveMissions();
+            CellChange[,] changes = new CellChange[
+                ShanghaiConfig.Instance.GridSize,
+                ShanghaiConfig.Instance.GridSize];
+
+            UpdateActiveMissions(changes);
             TickTargets();
 
             /* spawn */
