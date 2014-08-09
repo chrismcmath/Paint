@@ -9,7 +9,15 @@ namespace Shanghai.Model {
         public int Lives = ShanghaiConfig.Instance.TargetLives;
 
         public bool IsActive = false;
-        public bool Freeze = false;
+
+        private bool _Freeze = false;
+        public bool Freeze {
+            get { return _Freeze; }
+            set {
+                Debug.Log("setting _Freeze to " + value);
+                _Freeze = value;
+            }
+        }
 
         public Target(IntVect2 cellKey, ShanghaiUtils.PaintColour colour, float ttl) {
             CellKey = cellKey;

@@ -54,16 +54,50 @@ namespace Shanghai.ModelControllers {
             Cell cell = GetCell(key);
             /* First point, can only be a valid source */ 
             if (path.Count == 0 &&
-                   cell.Target != null) {
+                   cell.Target != null &&
+                   !CellHasMission(key) &&
+                   !CellIsAtEndOfMission(key)) {
                 GameModel.Instance.PathColour = cell.Target.PaintColour;
-                cell.Target.Freeze = true;
                 return true;
-            } else if (CellIsConnected(key, path) &&
-                    CanDrawOnCell(GetCell(key), GetCell(path[0]))) {
-                cell.HasPath = true;
-                Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
+            } else if (LastCellIsTerminal(path)) {
+                return false;
+            } else if (CellIsConnected(key, path)) {
+                if (CanDrawOnCell(GetCell(key), GetCell(path[0]))) {
+                    cell.HasPath = true;
+                    Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
+                    return true;
+                } else if (IsValidEndPoint(GetCell(key), GetCell(path[0]))) {
+                    Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool CellHasMission(IntVect2 key) {
+            Cell cell = GetCell(key);
+            Debug.Log("already has mission? target: " + cell.Target + " is stationary: " + IsStationary(cell) + "answer: " + (cell.Target != null && !IsStationary(cell)));
+            return cell.Target != null && !IsStationary(cell);
+        }
+
+        public bool CellIsAtEndOfMission(IntVect2 key) {
+            foreach (ActiveMission actMiss in GameModel.Instance.ActiveMissions) {
+                IntVect2 lastPointKey = actMiss.Path[actMiss.Path.Count-1];
+                if (key == lastPointKey) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool LastCellIsTerminal(List<IntVect2> path) {
+            if (path.Count < 2) {
+                return false; 
+            }
+            if (IsValidEndPoint(GetCell(path[path.Count -1]), GetCell(path[0]))) {
                 return true;
             }
+
             return false;
         }
 
@@ -86,9 +120,38 @@ namespace Shanghai.ModelControllers {
         }
 
         private bool CanDrawOnCell(Cell cell, Cell originCell) {
-            return cell.IsFree() ||
-                (cell.Target != null &&
-                 cell.Target.PaintColour == originCell.Target.PaintColour);
+            return cell.IsFree();
+        }
+
+        //NOTE: Accessing GameModel here, this whole thing needs a rethink
+        private bool IsValidEndPoint(Cell cell, Cell originCell) {
+            //NOTE: for now don't allow piggybacking
+            if (cell.Target != null &&
+                    cell.Target.PaintColour == originCell.Target.PaintColour) {
+                return IsStationary(cell);
+            }
+
+            foreach (ActiveMission actMiss in GameModel.Instance.ActiveMissions) {
+                IntVect2 lastPointKey = actMiss.Path[actMiss.Path.Count-1];
+                Cell lastCell = GetCell(lastPointKey);
+                if (cell.Key == lastCell.Key &&
+                        originCell.Target.PaintColour == actMiss.PaintColour) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool IsStationary(Cell cell) {
+            Debug.Log("check " + GameModel.Instance.ActiveMissions.Count + " missions");
+            foreach (ActiveMission actMiss in GameModel.Instance.ActiveMissions) {
+                Debug.Log("compare " + actMiss.Path[0] + " with " + cell.Key);
+                if (actMiss.Path[0] == cell.Key) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private bool CellInPath(IntVect2 key, List<IntVect2> path) {

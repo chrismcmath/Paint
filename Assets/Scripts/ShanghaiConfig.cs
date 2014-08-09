@@ -9,6 +9,9 @@ namespace Shanghai {
         public int InitialAvailableColours = 3;
         public int TargetLives = 3;
         public int TargetsPerTurn = 3;
+        public int TargetMin = 0;
+        public int TargetMax = 10;
+        public int LifeDecPerTurn = 1;
 
         public float ColourInterval = 8.0f;
         public float SourceInterval = 3.0f;
