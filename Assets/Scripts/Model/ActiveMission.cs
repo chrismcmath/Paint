@@ -26,9 +26,9 @@ namespace Shanghai.Model {
         }
 
         public bool Progress() {
-            Debug.Log("path was " + Path.Count);
+            //Debug.Log("path was " + Path.Count);
             Path.Remove(Path[0]);
-            Debug.Log("path now " + Path.Count);
+            //Debug.Log("path now " + Path.Count);
 
             if (Path.Count <= 1) {
                 return true;

@@ -72,7 +72,7 @@ namespace Shanghai.ViewControllers {
 
             if (cell.State == Cell.CellState.ACT_MISSION_NODE) {
                 ActMissionNodeWidget.alpha = 1;
-                Debug.Log("set points to " + cell.Points + " * " + cell.PointsModifier);
+                //Debug.Log("set points to " + cell.Points + " * " + cell.PointsModifier);
                 ActMissionNodeLabel.text = string.Format("{0}", cell.Points * cell.PointsModifier);
             } else {
                 ActMissionNodeWidget.alpha = 0;
