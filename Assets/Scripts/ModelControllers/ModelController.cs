@@ -146,10 +146,11 @@ namespace Shanghai.ModelControllers {
                 ShanghaiConfig.Instance.GridSize,
                 ShanghaiConfig.Instance.GridSize];
 
+            EnactTargetChanges(changes);
             UpdateActiveMissions(changes);
             TickTargets(changes);
 
-            PrintChanges(changes);
+            //PrintChanges(changes);
 
             PerformChanges(changes);
 
@@ -162,23 +163,37 @@ namespace Shanghai.ModelControllers {
             _Model.ChangeColour();
         }
 
-
-        public void TickTargets(CellChange[,] changes) {
-            List<Target> garbage = new List<Target>();
+        public void EnactTargetChanges(CellChange[,] changes) {
             foreach (Target target in _Model.Targets) {
+                Debug.Log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
                 Debug.Log("no targets: " + _Model.Targets.Count);
+                Debug.Log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
                 Cell cell = _Model.Grid.GetCell(target.CellKey);
 
                 if (!_GridModelController.CellHasMission(cell.Key) &&
                         !_GridModelController.CellIsAtEndOfMission(cell.Key)) {
                     target.Lives -= ShanghaiConfig.Instance.LifeDecPerTurn;
                 }
+            }
+        }
+
+        public void TickTargets(CellChange[,] changes) {
+            List<Target> garbage = new List<Target>();
+            foreach (Target target in _Model.Targets) {
+                Cell cell = _Model.Grid.GetCell(target.CellKey);
 
                 if (target.Lives <= ShanghaiConfig.Instance.TargetMin) {
                     garbage.Add(target);
-                    ExplodeCell(cell, changes);
+                    //NOTE: only destroy if not coloured
+                    if (cell.Colour == ShanghaiUtils.PaintColour.NONE) {
+                        ExplodeCell(cell, changes);
+                    } else {
+                        garbage.Add(target);
+                        cell.Reset();
+                    }
                 } else if (target.Lives >= ShanghaiConfig.Instance.TargetMax) {
                     PaintCell(cell.Key, target.PaintColour);
+                    garbage.Add(target);
                 }
 
                 Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
@@ -198,6 +213,7 @@ namespace Shanghai.ModelControllers {
                 Cell nextCell = _GridModelController.GetCell(actMiss.Path[1]);
                 if (nextCell.Target != null) {
                     nextCell.Target.Lives += cell.Target.Lives;
+                    _Model.Targets.Remove(cell.Target);
                 } else {
                     nextCell.Target = cell.Target;
                     nextCell.Target.CellKey = nextCell.Key;
@@ -211,7 +227,7 @@ namespace Shanghai.ModelControllers {
 
                     changes[actMiss.Path[0].x, actMiss.Path[0].y] = CellChange.ACCOMPLISHED;
 
-                    //RegenerateSurroundingCells(_GridModelController.GetCell(actMiss.Path[0]), changes);
+                    RegenerateSurroundingCells(_GridModelController.GetCell(actMiss.Path[0]), changes);
                     /*Disable bombs*/
 
                     /*
@@ -327,8 +343,10 @@ namespace Shanghai.ModelControllers {
         }
 
         private void RegenerateSurroundingCells(Cell cell, CellChange[,] changes) {
-            List<IntVect2> surroundingCells = ShanghaiUtils.GetLegitimateSurroundingCells8(cell.Key);
+            List<IntVect2> surroundingCells = ShanghaiUtils.GetLegitimateSurroundingCells(cell.Key);
+            Debug.Log("regenerate the cells around " + cell.Key);
             foreach (IntVect2 cellKey in surroundingCells) {
+                Debug.Log("regenerating " + cellKey);
                 Cell adjacentCell = _GridModelController.GetCell(cellKey);
                 if (adjacentCell.State == Cell.CellState.DEAD) {
                     changes[cellKey.x, cellKey.y] = CellChange.RESTORED;
@@ -363,6 +381,8 @@ namespace Shanghai.ModelControllers {
         public void ExplodeCell(Cell cell, CellChange[,] changes) {
             if (changes[cell.Key.x, cell.Key.y] == CellChange.DEFUSED) return;
 
+            //NOTE: no splash damage
+            /*
             List<IntVect2> surroundingCells = ShanghaiUtils.GetLegitimateSurroundingCells(cell.Key);
             foreach (IntVect2 cellKey in surroundingCells) {
                 //KillCell(_GridModelController.GetCell(cellKey));
@@ -370,6 +390,7 @@ namespace Shanghai.ModelControllers {
                     changes[cellKey.x, cellKey.y] = CellChange.COLLATERAL;
                 }
             }
+            */
             changes[cell.Key.x, cell.Key.y] = CellChange.BOMB;
             //KillCell(cell);
         }

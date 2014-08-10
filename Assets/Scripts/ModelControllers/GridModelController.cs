@@ -76,7 +76,7 @@ namespace Shanghai.ModelControllers {
 
         public bool CellHasMission(IntVect2 key) {
             Cell cell = GetCell(key);
-            Debug.Log("already has mission? target: " + cell.Target + " is stationary: " + IsStationary(cell) + "answer: " + (cell.Target != null && !IsStationary(cell)));
+            //Debug.Log("already has mission? target: " + cell.Target + " is stationary: " + IsStationary(cell) + "answer: " + (cell.Target != null && !IsStationary(cell)));
             return cell.Target != null && !IsStationary(cell);
         }
 
@@ -143,9 +143,9 @@ namespace Shanghai.ModelControllers {
         }
 
         private bool IsStationary(Cell cell) {
-            Debug.Log("check " + GameModel.Instance.ActiveMissions.Count + " missions");
+            //Debug.Log("check " + GameModel.Instance.ActiveMissions.Count + " missions");
             foreach (ActiveMission actMiss in GameModel.Instance.ActiveMissions) {
-                Debug.Log("compare " + actMiss.Path[0] + " with " + cell.Key);
+                //Debug.Log("compare " + actMiss.Path[0] + " with " + cell.Key);
                 if (actMiss.Path[0] == cell.Key) {
                     return false;
                 }

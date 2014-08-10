@@ -1,0 +1,36 @@
+
+States of a cell at the end of the round:
+
+Nothing
+Target exploded
+Collateral Destroyed
+Restored from death
+Prevented from being destroyed
+
+
+
+
+
+(user input)
+
+Rules:
+
+Decrement all inactive targets
+Move all active targets
+Perform actions based on the targets' current number
+Spawn new target
+
+
+
+
+
+
+
+Terminology
+
+OLD         -       NEW
+--------------------------
+Cell        -       Node
+Target      -       Entity
+Mission     -       Path
+

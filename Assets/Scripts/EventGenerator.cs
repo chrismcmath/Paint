@@ -25,24 +25,8 @@ namespace Shanghai {
                 return false;
             }
 
-            ShanghaiUtils.PaintColour targetColour = ShanghaiUtils.GetRandomColour(_Model.AvailableColours); 
-            //Debug.Log("target colour: " + targetColour);
-            float TTL = _Config.TargetWaitTime;
-            Target target = new Target(cellKey, targetColour, TTL);
+            Target target = new Target(cellKey, _Model.PaintColour, _Config.TargetWaitTime);
             Messenger<Target>.Broadcast(EVENT_TARGET_CREATED, target);
-            return true;
-        }
-
-        public bool GenerateSource() {
-            IntVect2 cellKey = new IntVect2(0,0);
-            if (!_Model.Grid.GetRandomCell(ref cellKey)) {
-                return false;
-            }
-
-            float TTL = _Config.SourceWaitTime;
-
-            Source source = new Source(cellKey, TTL, _Model.PaintColour);
-            Messenger<Source>.Broadcast(EVENT_SOURCE_CREATED, source);
             return true;
         }
     }
