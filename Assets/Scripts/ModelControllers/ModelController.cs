@@ -146,9 +146,9 @@ namespace Shanghai.ModelControllers {
                 ShanghaiConfig.Instance.GridSize,
                 ShanghaiConfig.Instance.GridSize];
 
-            EnactTargetChanges(changes);
-            UpdateActiveMissions(changes);
             TickTargets(changes);
+            UpdateActiveMissions(changes);
+            EnactTargetChanges(changes);
 
             //PrintChanges(changes);
 
@@ -163,11 +163,12 @@ namespace Shanghai.ModelControllers {
             _Model.ChangeColour();
         }
 
-        public void EnactTargetChanges(CellChange[,] changes) {
+        public void TickTargets(CellChange[,] changes) {
+            Debug.Log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            Debug.Log("no targets: " + _Model.Targets.Count);
+            Debug.Log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+
             foreach (Target target in _Model.Targets) {
-                Debug.Log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-                Debug.Log("no targets: " + _Model.Targets.Count);
-                Debug.Log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
                 Cell cell = _Model.Grid.GetCell(target.CellKey);
 
                 if (!_GridModelController.CellHasMission(cell.Key) &&
@@ -177,10 +178,12 @@ namespace Shanghai.ModelControllers {
             }
         }
 
-        public void TickTargets(CellChange[,] changes) {
+        public void EnactTargetChanges(CellChange[,] changes) {
             List<Target> garbage = new List<Target>();
             foreach (Target target in _Model.Targets) {
                 Cell cell = _Model.Grid.GetCell(target.CellKey);
+
+                Debug.Log(cell.Key + "stack: " + target.Stack);
 
                 if (target.Lives <= ShanghaiConfig.Instance.TargetMin) {
                     garbage.Add(target);
@@ -191,8 +194,21 @@ namespace Shanghai.ModelControllers {
                         garbage.Add(target);
                         cell.Reset();
                     }
-                } else if (target.Lives >= ShanghaiConfig.Instance.TargetMax) {
-                    PaintCell(cell.Key, target.PaintColour);
+                } else if (target.Stack > 1) {
+                    switch (target.Stack) {
+                        case 2:
+                            PaintCell(cell.Key, target.PaintColour);
+                            break;
+                        case 3:
+                            PaintSurroundingCells(cell.Key, target.PaintColour);
+                            break;
+                        case 4:
+                            Debug.Log("nothing yet");
+                            break;
+                        default:
+                            Debug.Log("couldn't get" + target.Stack);
+                            break;
+                    }
                     garbage.Add(target);
                 }
 
@@ -213,6 +229,8 @@ namespace Shanghai.ModelControllers {
                 Cell nextCell = _GridModelController.GetCell(actMiss.Path[1]);
                 if (nextCell.Target != null) {
                     nextCell.Target.Lives += cell.Target.Lives;
+                    nextCell.Target.Stack++;
+                    Debug.Log(nextCell.Key + " stack inc. to " + nextCell.Target.Stack);
                     _Model.Targets.Remove(cell.Target);
                 } else {
                     nextCell.Target = cell.Target;
@@ -311,6 +329,18 @@ namespace Shanghai.ModelControllers {
                         default:
                             break;
                     }
+                }
+            }
+        }
+
+        private void PaintSurroundingCells(IntVect2 cellKey, ShanghaiUtils.PaintColour colour) {
+            List<IntVect2> surroundingCells = ShanghaiUtils.GetLegitimateSurroundingCells(cellKey);
+            Debug.Log("paint the cells around " + cellKey);
+            foreach (IntVect2 adjKey in surroundingCells) {
+                Debug.Log("painting " + adjKey);
+                Cell adjacentCell = _GridModelController.GetCell(adjKey);
+                if (adjacentCell.Colour == ShanghaiUtils.PaintColour.NONE) {
+                    adjacentCell.Colour = colour;
                 }
             }
         }

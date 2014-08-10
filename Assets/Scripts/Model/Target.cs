@@ -10,6 +10,8 @@ namespace Shanghai.Model {
 
         public bool IsActive = false;
 
+        public int Stack = 1;
+
         private bool _Freeze = false;
         public bool Freeze {
             get { return _Freeze; }
