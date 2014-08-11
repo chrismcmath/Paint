@@ -135,7 +135,7 @@ namespace Shanghai {
             Targets.Add(target);
             Cell cell = _Grid.GetCell(target.CellKey);
             cell.Target = target;
-            cell.Colour = ShanghaiUtils.PaintColour.NONE;
+            //cell.Colour = ShanghaiUtils.PaintColour.NONE;
             Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
         } 
 
