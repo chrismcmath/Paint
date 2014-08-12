@@ -42,15 +42,28 @@ namespace Shanghai.ViewControllers {
             if (cell.Target != null) {
                 TargetWidget.alpha = 1.0f;
                 if (!cell.Target.Freeze) {
-                    TargetLabel.text = cell.Target.Lives.ToString();
-                    if (cell.Target.Lives == 2) {
-                        _Vibration = 0.1f;
-                    } else if (cell.Target.Lives == 1) {
-                        _Vibration = 1f;
-                    } else {
-                        _Vibration = 0.0f;
-                        TargetSprite.transform.localPosition = Vector3.zero;
+                    //TargetLabel.text = cell.Target.Lives.ToString();
+                    TargetLabel.text = "";
+                    switch (cell.Target.Lives) {
+                        case 3:
+                            TargetSprite.transform.localPosition = Vector3.zero;
+                            TargetSprite.transform.localScale = Vector3.one;
+                            break;
+                        case 2:
+                            TargetSprite.transform.localScale = Vector3.one * 0.9f;
+                            _Vibration = 0.1f;
+                            break;
+                        case 1:
+                            TargetSprite.transform.localScale = Vector3.one * 0.7f;
+                            _Vibration = 1f;
+                            break;
+                        default:
+                            TargetSprite.transform.localPosition = Vector3.zero;
+                            transform.localScale = Vector3.one;
+                            _Vibration = 0.0f;
+                            break; 
                     }
+                    Debug.Log("local scale: " + TargetSprite.transform.localScale);
                 } else {
                     TargetLabel.text = "";
                     _Vibration = 0.0f;
@@ -105,6 +118,8 @@ namespace Shanghai.ViewControllers {
                 float yOffset= GetRandomVibrationOffset();
                 TargetWidget.transform.localPosition = new Vector3(xOffset, yOffset);
             }
+
+            TargetSprite.transform.Rotate(Vector3.forward * Time.deltaTime * 100.0f);
         }
 
         private float GetRandomVibrationOffset() {

@@ -192,6 +192,7 @@ namespace Shanghai.ModelControllers {
                         ExplodeCell(cell, changes);
                     } else {
                         garbage.Add(target);
+                        cell.Colour = ShanghaiUtils.PaintColour.NONE;
                         cell.Reset();
                     }
                 } else if (target.Stack > 1) {
@@ -225,27 +226,34 @@ namespace Shanghai.ModelControllers {
             List<ActiveMission> garbage = new List<ActiveMission>();
 
             foreach (ActiveMission actMiss in _Model.ActiveMissions) {
-                Cell cell = _GridModelController.GetCell(actMiss.Path[0]);
-                Cell nextCell = _GridModelController.GetCell(actMiss.Path[1]);
-                if (nextCell.Target != null) {
-                    nextCell.Target.Lives += cell.Target.Lives;
-                    nextCell.Target.Stack++;
-                    Debug.Log(nextCell.Key + " stack inc. to " + nextCell.Target.Stack);
-                    _Model.Targets.Remove(cell.Target);
-                } else {
-                    nextCell.Target = cell.Target;
-                    nextCell.Target.CellKey = nextCell.Key;
+                bool finished = false;
+                while (!finished) {
+                    Cell cell = _GridModelController.GetCell(actMiss.Path[0]);
+                    Cell nextCell = _GridModelController.GetCell(actMiss.Path[1]);
+                    if (nextCell.Target != null) {
+                        nextCell.Target.Lives += cell.Target.Lives;
+                        nextCell.Target.Stack++;
+                        Debug.Log(nextCell.Key + " stack inc. to " + nextCell.Target.Stack);
+                        _Model.Targets.Remove(cell.Target);
+                    } else {
+                        nextCell.Target = cell.Target;
+                        nextCell.Target.CellKey = nextCell.Key;
+                    }
+                    cell.Reset();
+                    Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
+                    Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, nextCell);
+                    if (actMiss.Progress()) {
+                        garbage.Add(actMiss);
+                        //_Model.Point += actMiss.Points * actMiss.PointsModifier;
+
+                        changes[actMiss.Path[0].x, actMiss.Path[0].y] = CellChange.ACCOMPLISHED;
+                        finished = true;
+                    } 
+
+                    if (nextCell.Colour != nextCell.Target.PaintColour) {
+                        finished = true;
+                    }
                 }
-                cell.Reset();
-                Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, cell);
-                Messenger<Cell>.Broadcast(Cell.EVENT_CELL_UPDATED, nextCell);
-                if (actMiss.Progress()) {
-                    garbage.Add(actMiss);
-                    //_Model.Point += actMiss.Points * actMiss.PointsModifier;
-
-                    changes[actMiss.Path[0].x, actMiss.Path[0].y] = CellChange.ACCOMPLISHED;
-
-                } 
             }
 
             /* Garbage collection */
