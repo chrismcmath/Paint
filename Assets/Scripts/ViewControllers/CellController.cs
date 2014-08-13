@@ -48,6 +48,7 @@ namespace Shanghai.ViewControllers {
                         case 3:
                             TargetSprite.transform.localPosition = Vector3.zero;
                             TargetSprite.transform.localScale = Vector3.one;
+                            _Vibration = 0.0f;
                             break;
                         case 2:
                             TargetSprite.transform.localScale = Vector3.one * 0.9f;
